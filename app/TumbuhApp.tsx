@@ -227,6 +227,12 @@ const screenPaths: Record<Screen, string> = {
   handoff: "/backend",
 };
 
+const homeNavItems = [
+  { label: "Home", href: "#home" },
+  { label: "How it works", href: "#workflow" },
+  { label: "Features", href: "#features" },
+];
+
 export default function TumbuhApp({
   initialScreen = "home",
 }: {
@@ -440,8 +446,6 @@ export default function TumbuhApp({
       <div className="ambient ambient-two" />
       {screen === "home" && (
         <Header
-          screen={screen}
-          go={go}
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
         />
@@ -474,36 +478,29 @@ export default function TumbuhApp({
 }
 
 function Header({
-  screen,
-  go,
   mobileOpen,
   setMobileOpen,
 }: {
-  screen: Screen;
-  go: (screen: Screen) => void;
   mobileOpen: boolean;
   setMobileOpen: (value: boolean) => void;
 }) {
+  const closeMenu = () => setMobileOpen(false);
+
   return (
     <header className="site-header">
-      <button className="brand" onClick={() => go("home")} aria-label="Ke halaman awal">
-        <span className="brand-mark">T</span>
+      <Link className="brand" href="#home" onClick={closeMenu} aria-label="Ke halaman awal">
         <span>Tumbuh</span>
-      </button>
+      </Link>
       <nav className="desktop-nav" aria-label="Navigasi utama">
-        {navItems.slice(0, 5).map((item) => (
-          <button
-            key={item.id}
-            className={cx("nav-link", screen === item.id && "active")}
-            onClick={() => go(item.id)}
-          >
+        {homeNavItems.map((item) => (
+          <Link key={item.href} className="nav-link" href={item.href}>
             {item.label}
-          </button>
+          </Link>
         ))}
       </nav>
-      <button className="ghost-button desktop-only" onClick={() => go("handoff")}>
-        Backend handoff
-      </button>
+      <Link className="ghost-button desktop-only" href="/onboarding">
+        Get Started
+      </Link>
       <button
         className="menu-button"
         onClick={() => setMobileOpen(!mobileOpen)}
@@ -513,12 +510,14 @@ function Header({
       </button>
       {mobileOpen && (
         <div className="mobile-panel">
-          {navItems.map((item) => (
-            <button key={item.id} onClick={() => go(item.id)}>
-              {item.icon}
+          {homeNavItems.map((item) => (
+            <Link key={item.href} href={item.href} onClick={closeMenu}>
               {item.label}
-            </button>
+            </Link>
           ))}
+          <Link className="mobile-start-link" href="/onboarding" onClick={closeMenu}>
+            Get Started
+          </Link>
         </div>
       )}
     </header>
@@ -527,7 +526,7 @@ function Header({
 
 function Landing({ go }: { go: (screen: Screen) => void }) {
   return (
-    <section className="landing">
+    <section className="landing" id="home">
       <div className="home-hero-top">
         <div className="home-title-group">
           <h1>
@@ -550,8 +549,8 @@ function Landing({ go }: { go: (screen: Screen) => void }) {
       </div>
       <div className="home-photo-wrap">
         <Image
-          src="/images/parent-child-hero.jpg"
-          alt="Ibu memeluk anak di ruang hijau yang hangat"
+          src="/images/hero_bonding_moment.png"
+          alt="Ibu dan anak berinteraksi hangat di rumah yang tenang"
           className="home-hero-image"
           width={1280}
           height={853}
@@ -566,23 +565,9 @@ function Landing({ go }: { go: (screen: Screen) => void }) {
             </p>
           </div>
         </div>
-        <div className="hero-proof">
-          <div>
-            <strong>4</strong>
-            <span>area perkembangan</span>
-          </div>
-          <div>
-            <strong>3</strong>
-            <span>cara mencatat santai</span>
-          </div>
-          <div>
-            <strong>1</strong>
-            <span>ruang aman untuk Anda</span>
-          </div>
-        </div>
       </div>
 
-      <section className="home-section narrative-problem">
+      <section className="home-section narrative-problem" id="problem">
         <p className="overline">Tantangan Sehari-hari</p>
         <h2>Anda tidak harus mencari arah sendirian.</h2>
         <div className="narrative-text">
@@ -592,7 +577,7 @@ function Landing({ go }: { go: (screen: Screen) => void }) {
         </div>
       </section>
 
-      <section className="home-section side-by-side-workflow">
+      <section className="home-section side-by-side-workflow" id="workflow">
         <div className="workflow-text-content">
           <p className="overline">Cara Kerja</p>
           <h2>Dari cerita ke langkah nyata</h2>
@@ -625,7 +610,7 @@ function Landing({ go }: { go: (screen: Screen) => void }) {
         </div>
       </section>
 
-      <section className="home-section image-cards-section">
+      <section className="home-section image-cards-section" id="features">
         <div className="section-heading centered-heading">
           <h2>Fokus pada hal yang terpenting</h2>
           <p>Tumbuh hadir agar Anda bisa bernapas sedikit lebih lega tanpa melupakan progres anak.</p>
@@ -655,7 +640,7 @@ function Landing({ go }: { go: (screen: Screen) => void }) {
         </div>
       </section>
 
-      <section className="home-section split-value-section">
+      <section className="home-section split-value-section" id="demo">
         <div className="split-image-container">
           <Image src="/images/parent_child_hands.png" fill style={{ objectFit: 'cover' }} alt="Parent and child hands" />
         </div>
@@ -681,7 +666,7 @@ function Landing({ go }: { go: (screen: Screen) => void }) {
         </div>
       </section>
 
-      <section className="home-section ethics-banner">
+      <section className="home-section ethics-banner" id="safety">
         <div className="ethics-content">
           <ShieldCheck size={48} className="ethics-icon" />
           <h2>Mendampingi, bukan mendiagnosis.</h2>
@@ -734,7 +719,6 @@ function AppShell({
     <div className="product-shell">
       <aside className="sidebar">
         <button className="brand sidebar-brand" onClick={() => go("home")}>
-          <span className="brand-mark">T</span>
           <span>Tumbuh</span>
         </button>
         <div className="sidebar-section">
