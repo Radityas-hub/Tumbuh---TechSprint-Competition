@@ -57,6 +57,33 @@ type ChildProfile = {
   focusAreas: Area[];
 };
 
+type GuardianProfile = {
+  id: string;
+  authUserId: string;
+  email: string;
+  displayName: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type MeResponse = {
+  guardian: GuardianProfile;
+  onboarding: {
+    childCount: number;
+    completedChildCount: number;
+    hasChildren: boolean;
+    hasCompletedOnboarding: boolean;
+  };
+};
+
+type ApiErrorResponse = {
+  error: {
+    code: string;
+    message: string;
+    details?: unknown;
+  };
+};
+
 type ProgressEntry = {
   id: number;
   type: "Teks" | "Foto" | "Suara";
@@ -233,6 +260,59 @@ const homeNavItems = [
   { label: "Features", href: "#features" },
 ];
 
+function getDevelopmentAuthHeaders() {
+  if (process.env.NODE_ENV === "production") {
+    return {};
+  }
+
+  const authUserId =
+    process.env.NEXT_PUBLIC_DEV_AUTH_USER_ID?.trim() || "dev-user-1";
+  const email =
+    process.env.NEXT_PUBLIC_DEV_AUTH_EMAIL?.trim() || "dev@example.com";
+  const displayName =
+    process.env.NEXT_PUBLIC_DEV_AUTH_NAME?.trim() || "Ibu Rani";
+
+  return {
+    "x-dev-auth-user-id": authUserId,
+    "x-dev-auth-email": email,
+    "x-dev-auth-name": displayName,
+  };
+}
+
+async function apiRequest<T>(input: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  headers.set("Accept", "application/json");
+
+  Object.entries(getDevelopmentAuthHeaders()).forEach(([key, value]) => {
+    if (!headers.has(key) && value) {
+      headers.set(key, value);
+    }
+  });
+
+  const response = await fetch(input, {
+    ...init,
+    headers,
+    cache: "no-store",
+  });
+
+  const payload = (await response.json()) as { data?: T } & ApiErrorResponse;
+
+  if (!response.ok) {
+    const message = payload.error?.message || "Request failed";
+    const error = new Error(message) as Error & {
+      code?: string;
+      status?: number;
+      details?: unknown;
+    };
+    error.code = payload.error?.code;
+    error.status = response.status;
+    error.details = payload.error?.details;
+    throw error;
+  }
+
+  return payload.data as T;
+}
+
 export default function TumbuhApp({
   initialScreen = "home",
 }: {
@@ -245,17 +325,103 @@ export default function TumbuhApp({
   const [entries, setEntries] = useState<ProgressEntry[]>(startingEntries);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedArea, setSelectedArea] = useState<Area | "Semua">("Semua");
+  const [me, setMe] = useState<MeResponse | null>(null);
+  const [guardian, setGuardian] = useState<GuardianProfile | null>(null);
+  const [authState, setAuthState] = useState<"loading" | "ready" | "unauthenticated" | "error">("loading");
 
   const filteredEntries = useMemo(() => {
     if (selectedArea === "Semua") return entries;
     return entries.filter((entry) => entry.area === selectedArea);
   }, [entries, selectedArea]);
 
-  const go = (target: Screen) => {
-    setScreen(target);
+  const go = (target: Screen, options?: { replace?: boolean }) => {
+    if (screen !== target) {
+      setScreen(target);
+    }
     setMobileOpen(false);
+    if (options?.replace) {
+      router.replace(screenPaths[target]);
+      return;
+    }
     router.push(screenPaths[target]);
   };
+
+  useEffect(() => {
+    setScreen(initialScreen);
+  }, [initialScreen]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadMe() {
+      try {
+        setAuthState("loading");
+        const data = await apiRequest<MeResponse>("/api/me");
+
+        if (cancelled) {
+          return;
+        }
+
+        setMe(data);
+        setGuardian(data.guardian);
+        setAuthState("ready");
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        const status = (error as { status?: number }).status;
+
+        if (status === 401) {
+          setMe(null);
+          setGuardian(null);
+          setAuthState("unauthenticated");
+          return;
+        }
+
+        console.error("Failed to load session context", error);
+        setMe(null);
+        setGuardian(null);
+        setAuthState("error");
+      }
+    }
+
+    void loadMe();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (authState !== "ready" || !me) {
+      return;
+    }
+
+    const shouldOpenDashboard =
+      me.onboarding.hasChildren && me.onboarding.hasCompletedOnboarding;
+
+    if (screen === "onboarding" && shouldOpenDashboard) {
+      go("dashboard", { replace: true });
+      return;
+    }
+
+    if (
+      screen !== "home" &&
+      screen !== "onboarding" &&
+      !shouldOpenDashboard
+    ) {
+      go("onboarding", { replace: true });
+    }
+  }, [authState, me, screen]);
+
+  const guardianName = guardian?.displayName?.trim() || "Ibu Rani";
+  const primaryStartHref =
+    authState === "ready" &&
+    me?.onboarding.hasChildren &&
+    me.onboarding.hasCompletedOnboarding
+      ? screenPaths.dashboard
+      : screenPaths.onboarding;
 
   useEffect(() => {
     const root = rootRef.current;
@@ -448,16 +614,22 @@ export default function TumbuhApp({
         <Header
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
+          startHref={primaryStartHref}
         />
       )}
-      {screen === "home" && <Landing go={go} />}
+      {screen === "home" && <Landing go={go} startHref={primaryStartHref} />}
       {screen === "onboarding" && (
         <Onboarding profile={profile} setProfile={setProfile} go={go} />
       )}
       {screen !== "home" && screen !== "onboarding" && (
         <AppShell screen={screen} go={go}>
           {screen === "dashboard" && (
-            <Dashboard profile={profile} entries={entries} go={go} />
+            <Dashboard
+              profile={profile}
+              entries={entries}
+              go={go}
+              guardianName={guardianName}
+            />
           )}
           {screen === "roadmap" && <Roadmap />}
           {screen === "progress" && (
@@ -469,7 +641,9 @@ export default function TumbuhApp({
             />
           )}
           {screen === "education" && <Education />}
-          {screen === "consultation" && <Consultation profile={profile} go={go} />}
+          {screen === "consultation" && (
+            <Consultation profile={profile} go={go} />
+          )}
           {screen === "handoff" && <BackendHandoff />}
         </AppShell>
       )}
@@ -480,9 +654,11 @@ export default function TumbuhApp({
 function Header({
   mobileOpen,
   setMobileOpen,
+  startHref,
 }: {
   mobileOpen: boolean;
   setMobileOpen: (value: boolean) => void;
+  startHref: string;
 }) {
   const closeMenu = () => setMobileOpen(false);
 
@@ -498,7 +674,7 @@ function Header({
           </Link>
         ))}
       </nav>
-      <Link className="ghost-button desktop-only" href="/onboarding">
+      <Link className="ghost-button desktop-only" href={startHref}>
         Get Started
       </Link>
       <button
@@ -515,7 +691,7 @@ function Header({
               {item.label}
             </Link>
           ))}
-          <Link className="mobile-start-link" href="/onboarding" onClick={closeMenu}>
+          <Link className="mobile-start-link" href={startHref} onClick={closeMenu}>
             Get Started
           </Link>
         </div>
@@ -524,7 +700,13 @@ function Header({
   );
 }
 
-function Landing({ go }: { go: (screen: Screen) => void }) {
+function Landing({
+  go,
+  startHref,
+}: {
+  go: (screen: Screen) => void;
+  startHref: string;
+}) {
   return (
     <section className="landing" id="home">
       <div className="home-hero-top">
@@ -542,7 +724,7 @@ function Landing({ go }: { go: (screen: Screen) => void }) {
           <p>
             Tumbuh adalah ruang aman bagi Anda. Catat momen kecilnya setiap hari tanpa beban, dan biarkan kami merangkainya jadi panduan yang lebih jelas.
           </p>
-          <Link className="primary-button" href="/onboarding">
+          <Link className="primary-button" href={startHref}>
             Mulai buat roadmap
           </Link>
         </div>
@@ -682,7 +864,7 @@ function Landing({ go }: { go: (screen: Screen) => void }) {
           Mulailah dari satu kejadian kecil yang Anda ingat hari ini. Dari sana, kita akan menyusun langkah berikutnya bersama-sama.
         </p>
         <div>
-          <Link className="primary-button" href="/onboarding">
+          <Link className="primary-button" href={startHref}>
             Mulai kenalkan anak Anda
             <ArrowRight size={18} />
           </Link>
@@ -1034,15 +1216,17 @@ function Dashboard({
   profile,
   entries,
   go,
+  guardianName,
 }: {
   profile: ChildProfile;
   entries: ProgressEntry[];
   go: (screen: Screen) => void;
+  guardianName: string;
 }) {
   return (
     <>
       <WorkspaceHeader
-        title="Selamat pagi, Ibu Rani"
+        title={`Selamat pagi, ${guardianName}`}
         body={`Fokus ${profile.name} minggu ini: ${profile.focusAreas.join(
           " dan ",
         )}. Semua insight di bawah siap dihubungkan ke backend.`}

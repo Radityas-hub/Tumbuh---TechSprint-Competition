@@ -8,4 +8,17 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/Guardian'
+export type * from './models/Child'
+export type * from './models/Consent'
+export type * from './models/ProgressEntry'
+export type * from './models/MediaAsset'
+export type * from './models/RoadmapItem'
+export type * from './models/Insight'
+export type * from './models/AuditLog'
+export type * from './models/Article'
+export type * from './models/AssistantConversation'
+export type * from './models/AssistantMessage'
+export type * from './models/Provider'
+export type * from './models/ProcessingJob'
 export type * from './commonInputTypes'

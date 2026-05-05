@@ -9,7 +9,75 @@
 * 🟢 You can import this file directly.
 */
 
+export const FocusArea = {
+  COMMUNICATION: 'COMMUNICATION',
+  MOTORIC: 'MOTORIC',
+  BEHAVIOR: 'BEHAVIOR',
+  ACADEMIC: 'ACADEMIC'
+} as const
+
+export type FocusArea = (typeof FocusArea)[keyof typeof FocusArea]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const ConsentScope = {
+  HEALTH_DATA: 'HEALTH_DATA',
+  AI_INSIGHT: 'AI_INSIGHT',
+  MEDIA_UPLOAD: 'MEDIA_UPLOAD',
+  DOCUMENT_ANALYSIS: 'DOCUMENT_ANALYSIS',
+  LOCATION: 'LOCATION'
+} as const
+
+export type ConsentScope = (typeof ConsentScope)[keyof typeof ConsentScope]
+
+
+export const InputType = {
+  TEXT: 'TEXT',
+  PHOTO: 'PHOTO',
+  AUDIO: 'AUDIO',
+  DOCUMENT: 'DOCUMENT'
+} as const
+
+export type InputType = (typeof InputType)[keyof typeof InputType]
+
+
+export const MediaStatus = {
+  PENDING_UPLOAD: 'PENDING_UPLOAD',
+  UPLOADED: 'UPLOADED',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+} as const
+
+export type MediaStatus = (typeof MediaStatus)[keyof typeof MediaStatus]
+
+
+export const RoadmapStatus = {
+  ACHIEVED: 'ACHIEVED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  NEXT_TARGET: 'NEXT_TARGET',
+  NEEDS_ATTENTION: 'NEEDS_ATTENTION',
+  PAUSED: 'PAUSED'
+} as const
+
+export type RoadmapStatus = (typeof RoadmapStatus)[keyof typeof RoadmapStatus]
+
+
+export const InsightKind = {
+  WEEKLY: 'WEEKLY',
+  ENTRY: 'ENTRY',
+  ROADMAP: 'ROADMAP',
+  ASSISTANT: 'ASSISTANT',
+  DOCUMENT: 'DOCUMENT'
+} as const
+
+export type InsightKind = (typeof InsightKind)[keyof typeof InsightKind]
+
+
+export const JobStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+} as const
+
+export type JobStatus = (typeof JobStatus)[keyof typeof JobStatus]

@@ -6,3 +6,317 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum FocusArea {
+  COMMUNICATION
+  MOTORIC
+  BEHAVIOR
+  ACADEMIC
+}
+
+enum ConsentScope {
+  HEALTH_DATA
+  AI_INSIGHT
+  MEDIA_UPLOAD
+  DOCUMENT_ANALYSIS
+  LOCATION
+}
+
+enum InputType {
+  TEXT
+  PHOTO
+  AUDIO
+  DOCUMENT
+}
+
+enum MediaStatus {
+  PENDING_UPLOAD
+  UPLOADED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum RoadmapStatus {
+  ACHIEVED
+  IN_PROGRESS
+  NEXT_TARGET
+  NEEDS_ATTENTION
+  PAUSED
+}
+
+enum InsightKind {
+  WEEKLY
+  ENTRY
+  ROADMAP
+  ASSISTANT
+  DOCUMENT
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model Guardian {
+  id          String    @id @default(cuid())
+  authUserId  String    @unique @map("auth_user_id")
+  email       String    @unique
+  displayName String?   @map("display_name")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  children               Child[]
+  auditLogs              AuditLog[]
+  assistantConversations AssistantConversation[]
+
+  @@map("guardians")
+}
+
+model Child {
+  id                    String      @id @default(cuid())
+  guardianId            String      @map("guardian_id")
+  name                  String
+  birthDate             DateTime    @map("birth_date")
+  condition             String
+  focusAreas            FocusArea[] @map("focus_areas")
+  routine               String?
+  supportNeed           String?     @map("support_need")
+  onboardingCompletedAt DateTime?   @map("onboarding_completed_at")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+  deletedAt             DateTime?   @map("deleted_at")
+
+  guardian               Guardian                @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  consents               Consent[]
+  progressEntries        ProgressEntry[]
+  mediaAssets            MediaAsset[]
+  roadmapItems           RoadmapItem[]
+  insights               Insight[]
+  auditLogs              AuditLog[]
+  assistantConversations AssistantConversation[]
+
+  @@index([guardianId])
+  @@index([deletedAt])
+  @@map("children")
+}
+
+model Consent {
+  id        String       @id @default(cuid())
+  childId   String       @map("child_id")
+  scope     ConsentScope
+  granted   Boolean      @default(false)
+  grantedAt DateTime?    @map("granted_at")
+  revokedAt DateTime?    @map("revoked_at")
+  source    String?
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, scope])
+  @@index([childId, granted])
+  @@map("consents")
+}
+
+model ProgressEntry {
+  id         String    @id @default(cuid())
+  childId    String    @map("child_id")
+  area       FocusArea
+  inputType  InputType @default(TEXT) @map("input_type")
+  title      String?
+  note       String?
+  insight    String?
+  observedAt DateTime  @default(now()) @map("observed_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  child       Child        @relation(fields: [childId], references: [id], onDelete: Cascade)
+  mediaAssets MediaAsset[]
+  insights    Insight[]
+
+  @@index([childId, observedAt])
+  @@index([childId, area])
+  @@index([childId, inputType])
+  @@index([deletedAt])
+  @@map("progress_entries")
+}
+
+model MediaAsset {
+  id              String      @id @default(cuid())
+  childId         String      @map("child_id")
+  progressEntryId String?     @map("progress_entry_id")
+  type            InputType
+  storageBucket   String?     @map("storage_bucket")
+  storageKey      String      @map("storage_key")
+  url             String?
+  mimeType        String?     @map("mime_type")
+  sizeBytes       Int?        @map("size_bytes")
+  status          MediaStatus @default(PENDING_UPLOAD)
+  processingError String?     @map("processing_error")
+  processedOutput Json?       @map("processed_output")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  child          Child           @relation(fields: [childId], references: [id], onDelete: Cascade)
+  progressEntry  ProgressEntry?  @relation(fields: [progressEntryId], references: [id], onDelete: SetNull)
+  processingJobs ProcessingJob[]
+
+  @@index([childId, status])
+  @@index([progressEntryId])
+  @@map("media_assets")
+}
+
+model RoadmapItem {
+  id              String        @id @default(cuid())
+  childId         String        @map("child_id")
+  area            FocusArea
+  title           String
+  detail          String?
+  status          RoadmapStatus @default(NEXT_TARGET)
+  evidence        Json?
+  confidenceScore Float         @default(0) @map("confidence_score")
+  sortOrder       Int           @default(0) @map("sort_order")
+  achievedAt      DateTime?     @map("achieved_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId, sortOrder])
+  @@index([childId, status])
+  @@map("roadmap_items")
+}
+
+model Insight {
+  id              String      @id @default(cuid())
+  childId         String      @map("child_id")
+  progressEntryId String?     @map("progress_entry_id")
+  kind            InsightKind @default(WEEKLY)
+  summary         String
+  alerts          Json?
+  recommendations Json?
+  confidenceScore Float       @default(0) @map("confidence_score")
+  rangeStart      DateTime?   @map("range_start")
+  rangeEnd        DateTime?   @map("range_end")
+  generatedBy     String?     @map("generated_by")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  child         Child          @relation(fields: [childId], references: [id], onDelete: Cascade)
+  progressEntry ProgressEntry? @relation(fields: [progressEntryId], references: [id], onDelete: SetNull)
+
+  @@index([childId, kind, createdAt])
+  @@index([progressEntryId])
+  @@map("insights")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  guardianId String?  @map("guardian_id")
+  childId    String?  @map("child_id")
+  action     String
+  metadata   Json?
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  guardian Guardian? @relation(fields: [guardianId], references: [id], onDelete: SetNull)
+  child    Child?    @relation(fields: [childId], references: [id], onDelete: SetNull)
+
+  @@index([guardianId, createdAt])
+  @@index([childId, createdAt])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+model Article {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  category    String
+  readTime    Int       @map("read_time")
+  summary     String
+  content     String
+  published   Boolean   @default(false)
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([category, published])
+  @@map("articles")
+}
+
+model AssistantConversation {
+  id         String   @id @default(cuid())
+  guardianId String   @map("guardian_id")
+  childId    String?  @map("child_id")
+  title      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  guardian Guardian           @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  child    Child?             @relation(fields: [childId], references: [id], onDelete: SetNull)
+  messages AssistantMessage[]
+
+  @@index([guardianId, updatedAt])
+  @@index([childId, updatedAt])
+  @@map("assistant_conversations")
+}
+
+model AssistantMessage {
+  id             String   @id @default(cuid())
+  conversationId String   @map("conversation_id")
+  role           String
+  content        String
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("assistant_messages")
+}
+
+model Provider {
+  id           String   @id @default(cuid())
+  name         String
+  specialty    String
+  address      String?
+  phone        String?
+  website      String?
+  latitude     Float?
+  longitude    Float?
+  openingHours Json?    @map("opening_hours")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([specialty])
+  @@map("providers")
+}
+
+model ProcessingJob {
+  id           String    @id @default(cuid())
+  mediaAssetId String?   @map("media_asset_id")
+  kind         String
+  status       JobStatus @default(PENDING)
+  attempts     Int       @default(0)
+  payload      Json?
+  result       Json?
+  error        String?
+  runAfter     DateTime? @map("run_after")
+  startedAt    DateTime? @map("started_at")
+  completedAt  DateTime? @map("completed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  mediaAsset MediaAsset? @relation(fields: [mediaAssetId], references: [id], onDelete: SetNull)
+
+  @@index([status, runAfter])
+  @@index([mediaAssetId])
+  @@map("processing_jobs")
+}

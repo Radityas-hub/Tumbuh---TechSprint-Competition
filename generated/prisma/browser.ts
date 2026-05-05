@@ -17,4 +17,68 @@ import * as Prisma from './internal/prismaNamespaceBrowser'
 export { Prisma }
 export * as $Enums from './enums'
 export * from './enums';
-
+/**
+ * Model Guardian
+ * 
+ */
+export type Guardian = Prisma.GuardianModel
+/**
+ * Model Child
+ * 
+ */
+export type Child = Prisma.ChildModel
+/**
+ * Model Consent
+ * 
+ */
+export type Consent = Prisma.ConsentModel
+/**
+ * Model ProgressEntry
+ * 
+ */
+export type ProgressEntry = Prisma.ProgressEntryModel
+/**
+ * Model MediaAsset
+ * 
+ */
+export type MediaAsset = Prisma.MediaAssetModel
+/**
+ * Model RoadmapItem
+ * 
+ */
+export type RoadmapItem = Prisma.RoadmapItemModel
+/**
+ * Model Insight
+ * 
+ */
+export type Insight = Prisma.InsightModel
+/**
+ * Model AuditLog
+ * 
+ */
+export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model Article
+ * 
+ */
+export type Article = Prisma.ArticleModel
+/**
+ * Model AssistantConversation
+ * 
+ */
+export type AssistantConversation = Prisma.AssistantConversationModel
+/**
+ * Model AssistantMessage
+ * 
+ */
+export type AssistantMessage = Prisma.AssistantMessageModel
+/**
+ * Model Provider
+ * 
+ */
+export type Provider = Prisma.ProviderModel
+/**
+ * Model ProcessingJob
+ * 
+ */
+export type ProcessingJob = Prisma.ProcessingJobModel
