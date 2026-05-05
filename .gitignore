@@ -8,3 +8,17 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 dev-server*.log
+
+# AI assistant/tooling metadata
+.agents/
+.codex/
+.claude/
+**/AGENTS.md
+**/CLAUDE.md
+**/.agents/
+**/.codex/
+**/.claude/
+prompts/
+*.prompt.md
+*.ai.md
+llms.txt
