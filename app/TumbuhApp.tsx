@@ -35,7 +35,7 @@ import {
   Utensils,
   X,
 } from "lucide-react";
-import { FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -107,8 +107,29 @@ type ApiErrorResponse = {
   };
 };
 
+type ProgressEntryApiModel = {
+  id: string;
+  childId: string;
+  area: Area;
+  inputType: "Teks" | "Foto" | "Suara";
+  title: string | null;
+  note: string | null;
+  insight: string | null;
+  observedAt: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ProgressListResponse = {
+  entries: ProgressEntryApiModel[];
+  pageInfo: {
+    hasMore: boolean;
+    nextCursor: string | null;
+  };
+};
+
 type ProgressEntry = {
-  id: number;
+  id: string;
   type: "Teks" | "Foto" | "Suara";
   title: string;
   note: string;
@@ -123,39 +144,6 @@ const initialProfile: ChildProfile = {
   condition: "Autisme - sudah diagnosis",
   focusAreas: ["Komunikasi", "Perilaku"],
 };
-
-const startingEntries: ProgressEntry[] = [
-  {
-    id: 1,
-    type: "Teks",
-    title: "Kontak mata lebih lama",
-    note: "Dafa bisa mempertahankan kontak mata sekitar 5 detik saat diminta memilih minum atau main.",
-    area: "Komunikasi",
-    date: "Senin, 4 Mei 2026",
-    insight:
-      "Kontak mata muncul saat instruksi dibuat pendek dan pilihan visual tersedia.",
-  },
-  {
-    id: 2,
-    type: "Suara",
-    title: "Mengucapkan dua kata",
-    note: "Dafa mengucapkan 'mau minum' setelah melihat botol minum di meja.",
-    area: "Komunikasi",
-    date: "Minggu, 3 Mei 2026",
-    insight:
-      "Ucapan spontan paling sering muncul ketika benda yang diinginkan terlihat jelas.",
-  },
-  {
-    id: 3,
-    type: "Foto",
-    title: "Sensory play sore hari",
-    note: "Aktivitas sensory play dengan pasir kinetik membantu Dafa duduk fokus selama 12 menit.",
-    area: "Perilaku",
-    date: "Sabtu, 2 Mei 2026",
-    insight:
-      "Regulasi emosi membaik setelah aktivitas sensorik yang terstruktur.",
-  },
-];
 
 const navItems: { id: Screen; label: string; icon: ReactNode }[] = [
   { id: "dashboard", label: "Dashboard", icon: <Home size={18} /> },
@@ -353,6 +341,36 @@ function getChildSupportNeed(child: ChildApiModel | null) {
   return child?.supportNeed || "Arahan aktivitas harian yang praktis";
 }
 
+function formatObservedDate(value: string) {
+  return new Intl.DateTimeFormat("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Singapore",
+  }).format(new Date(value));
+}
+
+function mapProgressEntryToUi(entry: ProgressEntryApiModel): ProgressEntry {
+  return {
+    id: entry.id,
+    type: entry.inputType,
+    area: entry.area,
+    title:
+      entry.title ||
+      (entry.inputType === "Teks"
+        ? "Catatan perkembangan baru"
+        : entry.inputType === "Foto"
+          ? "Observasi dari aktivitas visual"
+          : "Ringkasan voice note orang tua"),
+    note: entry.note || "",
+    date: formatObservedDate(entry.observedAt),
+    insight:
+      entry.insight ||
+      "Catatan baru siap dikirim ke backend untuk ekstraksi pola, ringkasan, dan pembaruan roadmap.",
+  };
+}
+
 export default function TumbuhApp({
   initialScreen = "home",
 }: {
@@ -362,7 +380,8 @@ export default function TumbuhApp({
   const rootRef = useRef<HTMLElement | null>(null);
   const [screen, setScreen] = useState<Screen>(initialScreen);
   const [profile, setProfile] = useState<ChildProfile>(initialProfile);
-  const [entries, setEntries] = useState<ProgressEntry[]>(startingEntries);
+  const [entries, setEntries] = useState<ProgressEntry[]>([]);
+  const [timelineEntries, setTimelineEntries] = useState<ProgressEntry[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedArea, setSelectedArea] = useState<Area | "Semua">("Semua");
   const [me, setMe] = useState<MeResponse | null>(null);
@@ -370,11 +389,6 @@ export default function TumbuhApp({
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
   const [activeChild, setActiveChild] = useState<ChildApiModel | null>(null);
   const [authState, setAuthState] = useState<"loading" | "ready" | "unauthenticated" | "error">("loading");
-
-  const filteredEntries = useMemo(() => {
-    if (selectedArea === "Semua") return entries;
-    return entries.filter((entry) => entry.area === selectedArea);
-  }, [entries, selectedArea]);
 
   const go = (target: Screen, options?: { replace?: boolean }) => {
     if (screen !== target) {
@@ -404,6 +418,8 @@ export default function TumbuhApp({
         setGuardian(null);
         setActiveChildId(null);
         setActiveChild(null);
+        setEntries([]);
+        setTimelineEntries([]);
         setAuthState("unauthenticated");
         return null;
       }
@@ -413,8 +429,48 @@ export default function TumbuhApp({
       setGuardian(null);
       setActiveChildId(null);
       setActiveChild(null);
+      setEntries([]);
+      setTimelineEntries([]);
       setAuthState("error");
       return null;
+    }
+  }
+
+  async function loadProgressEntries(childId: string, area?: Area | "Semua") {
+    const searchParams = new URLSearchParams();
+
+    if (area && area !== "Semua") {
+      searchParams.set("area", area);
+    }
+
+    const data = await apiRequest<ProgressListResponse>(
+      `/api/children/${childId}/progress${searchParams.toString() ? `?${searchParams.toString()}` : ""}`,
+    );
+
+    return data.entries.map(mapProgressEntryToUi);
+  }
+
+  async function refreshProgressData(nextChildId?: string | null) {
+    const childId = nextChildId ?? activeChildId;
+
+    if (!childId) {
+      setEntries([]);
+      setTimelineEntries([]);
+      return;
+    }
+
+    try {
+      const [allEntries, filteredEntries] = await Promise.all([
+        loadProgressEntries(childId),
+        loadProgressEntries(childId, selectedArea),
+      ]);
+
+      setEntries(allEntries);
+      setTimelineEntries(filteredEntries);
+    } catch (error) {
+      console.error("Failed to load progress entries", error);
+      setEntries([]);
+      setTimelineEntries([]);
     }
   }
 
@@ -444,6 +500,8 @@ export default function TumbuhApp({
       if (me && !me.onboarding.hasChildren) {
         setActiveChildId(null);
         setActiveChild(null);
+        setEntries([]);
+        setTimelineEntries([]);
       }
       return;
     }
@@ -463,6 +521,8 @@ export default function TumbuhApp({
         if (!firstChild) {
           setActiveChildId(null);
           setActiveChild(null);
+          setEntries([]);
+          setTimelineEntries([]);
           return;
         }
 
@@ -482,6 +542,18 @@ export default function TumbuhApp({
       cancelled = true;
     };
   }, [authState, me?.onboarding.hasChildren]);
+
+  useEffect(() => {
+    if (authState !== "ready" || !activeChildId) {
+      if (!activeChildId) {
+        setEntries([]);
+        setTimelineEntries([]);
+      }
+      return;
+    }
+
+    void refreshProgressData(activeChildId);
+  }, [authState, activeChildId, selectedArea]);
 
   async function handleOnboardingComplete(payload: OnboardingPayload) {
     const requestInit: RequestInit = {
@@ -508,6 +580,36 @@ export default function TumbuhApp({
     setActiveChildId(completedResponse.child.id);
     await refreshSession();
     go("dashboard", { replace: true });
+  }
+
+  async function handleProgressCreate(payload: {
+    area: Area;
+    inputType: ProgressEntry["type"];
+    note: string;
+    title?: string;
+  }) {
+    if (!activeChildId) {
+      return;
+    }
+
+    await apiRequest<{ entry: ProgressEntryApiModel }>(
+      `/api/children/${activeChildId}/progress`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          area: payload.area,
+          inputType: payload.inputType,
+          note: payload.note,
+          title: payload.title ?? null,
+          observedAt: new Date().toISOString(),
+        }),
+      },
+    );
+
+    await refreshProgressData(activeChildId);
   }
 
   useEffect(() => {
@@ -758,10 +860,10 @@ export default function TumbuhApp({
           {screen === "roadmap" && <Roadmap />}
           {screen === "progress" && (
             <Progress
-              entries={filteredEntries}
+              entries={timelineEntries}
               selectedArea={selectedArea}
               setSelectedArea={setSelectedArea}
-              addEntry={(entry) => setEntries([entry, ...entries])}
+              addEntry={handleProgressCreate}
             />
           )}
           {screen === "education" && <Education />}
@@ -1388,7 +1490,7 @@ function Dashboard({
         }
       />
       <div className="metric-grid">
-        <Metric label="Catatan minggu ini" value={String(entries.length + 15)} tone="green" />
+        <Metric label="Catatan minggu ini" value={String(entries.length)} tone="green" />
         <Metric label="Aktivitas selesai" value="7" tone="blue" />
         <Metric label="Target tercapai" value="2" tone="amber" />
         <Metric label="Alert penting" value="1" tone="coral" />
@@ -1503,18 +1605,24 @@ function Progress({
   entries: ProgressEntry[];
   selectedArea: Area | "Semua";
   setSelectedArea: (area: Area | "Semua") => void;
-  addEntry: (entry: ProgressEntry) => void;
+  addEntry: (entry: {
+    area: Area;
+    inputType: ProgressEntry["type"];
+    note: string;
+    title?: string;
+  }) => Promise<void>;
 }) {
   const [note, setNote] = useState("");
   const [type, setType] = useState<ProgressEntry["type"]>("Teks");
   const [area, setArea] = useState<Area>("Komunikasi");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!note.trim()) return;
-    addEntry({
-      id: Date.now(),
-      type,
+    setIsSubmitting(true);
+    void addEntry({
+      inputType: type,
       area,
       note,
       title:
@@ -1523,11 +1631,16 @@ function Progress({
           : type === "Foto"
             ? "Observasi dari aktivitas visual"
             : "Ringkasan voice note orang tua",
-      date: "Hari ini",
-      insight:
-        "Catatan baru siap dikirim ke backend untuk ekstraksi pola, ringkasan, dan pembaruan roadmap.",
-    });
-    setNote("");
+    })
+      .then(() => {
+        setNote("");
+      })
+      .catch((error) => {
+        console.error("Failed to save progress entry", error);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   return (
@@ -1542,6 +1655,7 @@ function Progress({
             {(["Teks", "Foto", "Suara"] as ProgressEntry["type"][]).map((item) => (
               <button
                 key={item}
+                type="button"
                 className={cx("mode-button", type === item && "active")}
                 onClick={() => setType(item)}
               >
@@ -1580,7 +1694,7 @@ function Progress({
                 </span>
               </div>
             )}
-            <button className="primary-button full" type="submit">
+            <button className="primary-button full" type="submit" disabled={isSubmitting}>
               Simpan catatan <ArrowRight size={18} />
             </button>
           </form>
@@ -1603,6 +1717,16 @@ function Progress({
             </div>
           </div>
           <div className="entry-list">
+            {entries.length === 0 && (
+              <article className="entry-card">
+                <div>
+                  <span className="entry-type">Belum ada catatan</span>
+                  <h3>Timeline masih kosong</h3>
+                  <p>Catatan perkembangan pertama akan muncul di sini setelah disimpan.</p>
+                  <small>Pilih area lalu tambahkan observasi singkat dari hari ini.</small>
+                </div>
+              </article>
+            )}
             {entries.map((entry) => (
               <article key={entry.id} className="entry-card">
                 <div>
