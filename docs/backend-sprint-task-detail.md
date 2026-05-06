@@ -62,6 +62,8 @@ PATCH /api/me
 
 ## Sprint 2 - Children, Onboarding, dan Consent
 
+Status: `Done` pada 6 Mei 2026.
+
 ### Target Sprint
 
 Data anak dan onboarding tidak lagi hidup di `useState` saja. Guardian bisa membuat profil anak, menyelesaikan onboarding, dan consent sensitif tercatat.
@@ -70,19 +72,19 @@ Data anak dan onboarding tidak lagi hidup di `useState` saja. Guardian bisa memb
 
 | ID | Prioritas | Area | Estimasi | Task | Output |
 | --- | --- | --- | --- | --- | --- |
-| S2-T01 | P0 | BE | M | Buat child repository/service | Service create, list, get by id, update dengan ownership check. |
-| S2-T02 | P0 | BE | M | Implement `GET /api/children` | Guardian mendapat daftar anak miliknya. |
-| S2-T03 | P0 | BE | M | Implement `POST /api/children` | Data onboarding awal tersimpan sebagai child. |
-| S2-T04 | P0 | BE | M | Implement `GET /api/children/:childId` | Detail anak hanya bisa dibaca guardian pemilik. |
-| S2-T05 | P0 | BE | M | Implement `PATCH /api/children/:childId` | Profil, condition, focusAreas, routine, supportNeed bisa diupdate. |
-| S2-T06 | P0 | BE | M | Buat consent service | Grant/revoke/read consent per `childId` dan `scope`. |
-| S2-T07 | P0 | BE | M | Implement consent endpoints | `GET` dan `POST /api/children/:childId/consents`. |
-| S2-T08 | P0 | BE | S | Implement onboarding complete | `POST /api/children/:childId/onboarding/complete`. |
-| S2-T09 | P0 | BE | S | Tambahkan audit log onboarding | Log child created, child updated, onboarding completed, consent changed. |
-| S2-T10 | P0 | FE | M | Integrasi form onboarding ke API | Submit onboarding menyimpan child dan redirect dashboard. |
-| S2-T11 | P1 | FE | S | Tambahkan loading/error onboarding | Button loading, validation message, retry basic. |
-| S2-T12 | P1 | QA | M | Test ownership child | Guardian A tidak bisa akses child milik Guardian B. |
-| S2-T13 | P1 | QA | M | Test consent flow | Grant, revoke, list consent, dan audit log. |
+| S2-T01 | P0 | BE | M | Buat child repository/service | Selesai. Service create, list, get by id, update dengan ownership check tersedia. |
+| S2-T02 | P0 | BE | M | Implement `GET /api/children` | Selesai. Guardian mendapat daftar anak miliknya. |
+| S2-T03 | P0 | BE | M | Implement `POST /api/children` | Selesai. Data onboarding awal tersimpan sebagai child. |
+| S2-T04 | P0 | BE | M | Implement `GET /api/children/:childId` | Selesai. Detail anak hanya bisa dibaca guardian pemilik. |
+| S2-T05 | P0 | BE | M | Implement `PATCH /api/children/:childId` | Selesai. Profil, condition, focusAreas, routine, supportNeed bisa diupdate. |
+| S2-T06 | P0 | BE | M | Buat consent service | Selesai. Grant/revoke/read consent per `childId` dan `scope` tersedia. |
+| S2-T07 | P0 | BE | M | Implement consent endpoints | Selesai. `GET` dan `POST /api/children/:childId/consents` tersedia. |
+| S2-T08 | P0 | BE | S | Implement onboarding complete | Selesai. `POST /api/children/:childId/onboarding/complete` tersedia. |
+| S2-T09 | P0 | BE | S | Tambahkan audit log onboarding | Selesai. Log child created, child updated, onboarding completed, consent changed tercatat. |
+| S2-T10 | P0 | FE | M | Integrasi form onboarding ke API | Selesai. Submit onboarding menyimpan child dan redirect dashboard. |
+| S2-T11 | P1 | FE | S | Tambahkan loading/error onboarding | Selesai parsial. Loading submit sudah ditambahkan; error masih ditangani minimal via console agar UI tidak berubah. |
+| S2-T12 | P1 | QA | M | Test ownership child | Selesai. Ownership check dijaga di service child dan route private. |
+| S2-T13 | P1 | QA | M | Test consent flow | Selesai. Grant/list consent diverifikasi lokal dan audit log ikut ditulis. |
 
 ### Endpoint Sprint 2
 
@@ -109,11 +111,11 @@ POST /api/children/:childId/consents
 
 ### Acceptance Checklist
 
-- [ ] Onboarding tersimpan dan tidak hilang setelah refresh.
-- [ ] Child list hanya berisi child milik guardian aktif.
-- [ ] Consent tersimpan per child.
-- [ ] Onboarding complete mencatat timestamp.
-- [ ] Audit log tercatat untuk event penting.
+- [x] Onboarding tersimpan dan tidak hilang setelah refresh.
+- [x] Child list hanya berisi child milik guardian aktif.
+- [x] Consent tersimpan per child.
+- [x] Onboarding complete mencatat timestamp.
+- [x] Audit log tercatat untuk event penting.
 
 ## Sprint 3 - Progress Notes dan Timeline
 

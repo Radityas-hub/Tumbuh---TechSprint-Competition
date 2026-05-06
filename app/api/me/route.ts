@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { unstable_noStore as noStore } from "next/cache";
 
 import { handleRouteError, ok } from "../../../lib/api/response";
 import { parseJsonBody, z } from "../../../lib/api/validation";
@@ -51,6 +52,7 @@ async function buildMeResponse(guardianId: string) {
 
 export async function GET(request: NextRequest) {
   try {
+    noStore();
     const guardian = await getOrCreateGuardianForRequest(request);
     return ok(await buildMeResponse(guardian.id));
   } catch (error) {
@@ -60,6 +62,7 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    noStore();
     const guardian = await getOrCreateGuardianForRequest(request);
     const body = await parseJsonBody(request, patchMeSchema);
 

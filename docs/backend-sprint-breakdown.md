@@ -15,7 +15,7 @@ Asumsi durasi:
 | Sprint | Fokus | Outcome utama |
 | --- | --- | --- |
 | Sprint 1 | Fondasi backend, auth, database | Selesai pada 5 Mei 2026. API siap dibangun, schema awal tersedia, user/guardian bisa dikenali. |
-| Sprint 2 | Children, onboarding, consent | Profil anak dan hasil onboarding tersimpan permanen. |
+| Sprint 2 | Children, onboarding, consent | Selesai pada 6 Mei 2026. Profil anak dan hasil onboarding tersimpan permanen. |
 | Sprint 3 | Progress notes dan timeline | Catatan perkembangan teks bisa dibuat, dilihat, difilter, dan diamankan. |
 | Sprint 4 | Dashboard, roadmap, insight dasar | UI dashboard/roadmap punya data agregat dari backend. |
 | Sprint 5 | Media upload dan processing async | Foto/suara/dokumen bisa di-upload dan diproses dengan status. |
@@ -89,6 +89,8 @@ Menyiapkan fondasi teknis agar semua sprint berikutnya punya database, auth cont
 
 ## Sprint 2 - Children, Onboarding, dan Consent
 
+Status: `Done` pada 6 Mei 2026.
+
 ### Goal
 
 Menyimpan data onboarding dari UI menjadi data permanen dan menyiapkan consent untuk pemakaian data sensitif.
@@ -128,6 +130,14 @@ Menyimpan data onboarding dari UI menjadi data permanen dan menyiapkan consent u
 - `focusAreas` tersimpan sebagai array enum/string yang tervalidasi.
 - Consent bisa dibuat dan diperbarui.
 - Audit log tercatat untuk perubahan penting.
+
+### Implementasi Selesai
+
+- Service child, consent, dan audit log sudah ditambahkan untuk ownership check dan pencatatan event penting.
+- Endpoint `children`, `consents`, dan `onboarding complete` sudah tersedia di `app/api/children/**`.
+- Frontend onboarding sudah submit ke backend, menyimpan child, menandai onboarding complete, lalu memuat ulang session context.
+- Profile anak aktif dimuat ulang dari backend saat aplikasi dibuka, sehingga data onboarding tidak lagi hanya bergantung pada `useState`.
+- Verifikasi lokal yang sudah dilakukan: `tsc --noEmit`, `GET /api/children`, `POST /api/children`, `POST /api/children/:childId/onboarding/complete`, dan `GET /api/children/:childId/consents`.
 
 ### Payload Utama
 

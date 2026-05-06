@@ -76,6 +76,29 @@ type MeResponse = {
   };
 };
 
+type ChildApiModel = {
+  id: string;
+  guardianId: string;
+  name: string;
+  birthDate: string;
+  condition: string;
+  focusAreas: Area[];
+  routine: string | null;
+  supportNeed: string | null;
+  onboardingCompletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ChildrenResponse = {
+  children: ChildApiModel[];
+};
+
+type OnboardingPayload = ChildProfile & {
+  routine: string;
+  supportNeed: string;
+};
+
 type ApiErrorResponse = {
   error: {
     code: string;
@@ -313,6 +336,23 @@ async function apiRequest<T>(input: string, init?: RequestInit): Promise<T> {
   return payload.data as T;
 }
 
+function mapChildToProfile(child: ChildApiModel): ChildProfile {
+  return {
+    name: child.name,
+    birthDate: child.birthDate.slice(0, 10),
+    condition: child.condition,
+    focusAreas: child.focusAreas,
+  };
+}
+
+function getChildRoutine(child: ChildApiModel | null) {
+  return child?.routine || "Rutinitas visual pagi dan transisi sore";
+}
+
+function getChildSupportNeed(child: ChildApiModel | null) {
+  return child?.supportNeed || "Arahan aktivitas harian yang praktis";
+}
+
 export default function TumbuhApp({
   initialScreen = "home",
 }: {
@@ -327,6 +367,8 @@ export default function TumbuhApp({
   const [selectedArea, setSelectedArea] = useState<Area | "Semua">("Semua");
   const [me, setMe] = useState<MeResponse | null>(null);
   const [guardian, setGuardian] = useState<GuardianProfile | null>(null);
+  const [activeChildId, setActiveChildId] = useState<string | null>(null);
+  const [activeChild, setActiveChild] = useState<ChildApiModel | null>(null);
   const [authState, setAuthState] = useState<"loading" | "ready" | "unauthenticated" | "error">("loading");
 
   const filteredEntries = useMemo(() => {
@@ -346,6 +388,36 @@ export default function TumbuhApp({
     router.push(screenPaths[target]);
   };
 
+  async function refreshSession() {
+    try {
+      setAuthState("loading");
+      const data = await apiRequest<MeResponse>("/api/me");
+      setMe(data);
+      setGuardian(data.guardian);
+      setAuthState("ready");
+      return data;
+    } catch (error) {
+      const status = (error as { status?: number }).status;
+
+      if (status === 401) {
+        setMe(null);
+        setGuardian(null);
+        setActiveChildId(null);
+        setActiveChild(null);
+        setAuthState("unauthenticated");
+        return null;
+      }
+
+      console.error("Failed to load session context", error);
+      setMe(null);
+      setGuardian(null);
+      setActiveChildId(null);
+      setActiveChild(null);
+      setAuthState("error");
+      return null;
+    }
+  }
+
   useEffect(() => {
     setScreen(initialScreen);
   }, [initialScreen]);
@@ -353,45 +425,90 @@ export default function TumbuhApp({
   useEffect(() => {
     let cancelled = false;
 
-    async function loadMe() {
-      try {
-        setAuthState("loading");
-        const data = await apiRequest<MeResponse>("/api/me");
-
-        if (cancelled) {
-          return;
-        }
-
-        setMe(data);
-        setGuardian(data.guardian);
-        setAuthState("ready");
-      } catch (error) {
-        if (cancelled) {
-          return;
-        }
-
-        const status = (error as { status?: number }).status;
-
-        if (status === 401) {
-          setMe(null);
-          setGuardian(null);
-          setAuthState("unauthenticated");
-          return;
-        }
-
-        console.error("Failed to load session context", error);
-        setMe(null);
-        setGuardian(null);
-        setAuthState("error");
+    async function loadInitialSession() {
+      const data = await refreshSession();
+      if (cancelled || !data) {
+        return;
       }
     }
 
-    void loadMe();
+    void loadInitialSession();
 
     return () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (authState !== "ready" || !me?.onboarding.hasChildren) {
+      if (me && !me.onboarding.hasChildren) {
+        setActiveChildId(null);
+        setActiveChild(null);
+      }
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadChildren() {
+      try {
+        const data = await apiRequest<ChildrenResponse>("/api/children");
+
+        if (cancelled) {
+          return;
+        }
+
+        const firstChild = data.children[0];
+
+        if (!firstChild) {
+          setActiveChildId(null);
+          setActiveChild(null);
+          return;
+        }
+
+        setActiveChildId(firstChild.id);
+        setActiveChild(firstChild);
+        setProfile(mapChildToProfile(firstChild));
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load children", error);
+        }
+      }
+    }
+
+    void loadChildren();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authState, me?.onboarding.hasChildren]);
+
+  async function handleOnboardingComplete(payload: OnboardingPayload) {
+    const requestInit: RequestInit = {
+      method: activeChildId ? "PATCH" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    };
+
+    const childResponse = activeChildId
+      ? await apiRequest<{ child: ChildApiModel }>(`/api/children/${activeChildId}`, requestInit)
+      : await apiRequest<{ child: ChildApiModel }>("/api/children", requestInit);
+
+    const completedResponse = await apiRequest<{ child: ChildApiModel }>(
+      `/api/children/${childResponse.child.id}/onboarding/complete`,
+      {
+        method: "POST",
+      },
+    );
+
+    setActiveChild(completedResponse.child);
+    setProfile(mapChildToProfile(completedResponse.child));
+    setActiveChildId(completedResponse.child.id);
+    await refreshSession();
+    go("dashboard", { replace: true });
+  }
 
   useEffect(() => {
     if (authState !== "ready" || !me) {
@@ -619,7 +736,14 @@ export default function TumbuhApp({
       )}
       {screen === "home" && <Landing go={go} startHref={primaryStartHref} />}
       {screen === "onboarding" && (
-        <Onboarding profile={profile} setProfile={setProfile} go={go} />
+        <Onboarding
+          profile={profile}
+          setProfile={setProfile}
+          go={go}
+          onComplete={handleOnboardingComplete}
+          initialRoutine={getChildRoutine(activeChild)}
+          initialSupportNeed={getChildSupportNeed(activeChild)}
+        />
       )}
       {screen !== "home" && screen !== "onboarding" && (
         <AppShell screen={screen} go={go}>
@@ -932,20 +1056,35 @@ function Onboarding({
   profile,
   setProfile,
   go,
+  onComplete,
+  initialRoutine,
+  initialSupportNeed,
 }: {
   profile: ChildProfile;
   setProfile: (profile: ChildProfile) => void;
   go: (screen: Screen) => void;
+  onComplete: (payload: OnboardingPayload) => Promise<void>;
+  initialRoutine: string;
+  initialSupportNeed: string;
 }) {
   const [draft, setDraft] = useState(profile);
   const [step, setStep] = useState(1);
-  const [routine, setRoutine] = useState(
-    "Rutinitas visual pagi dan transisi sore",
-  );
-  const [supportNeed, setSupportNeed] = useState(
-    "Arahan aktivitas harian yang praktis",
-  );
+  const [routine, setRoutine] = useState(initialRoutine);
+  const [supportNeed, setSupportNeed] = useState(initialSupportNeed);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const totalSteps = 4;
+
+  useEffect(() => {
+    setDraft(profile);
+  }, [profile]);
+
+  useEffect(() => {
+    setRoutine(initialRoutine);
+  }, [initialRoutine]);
+
+  useEffect(() => {
+    setSupportNeed(initialSupportNeed);
+  }, [initialSupportNeed]);
 
   const conditions = [
     "Autisme - sudah diagnosis",
@@ -1003,8 +1142,19 @@ function Onboarding({
       setStep(step + 1);
       return;
     }
-    setProfile(draft);
-    go("dashboard");
+    setIsSubmitting(true);
+
+    void onComplete({
+      ...draft,
+      routine,
+      supportNeed,
+    })
+      .catch((error) => {
+        console.error("Failed to complete onboarding", error);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   const stepContent = [
@@ -1202,6 +1352,7 @@ function Onboarding({
             className="primary-button onboarding-next"
             type="button"
             onClick={goNext}
+            disabled={isSubmitting}
           >
             {step === totalSteps ? "Buat roadmap awal" : "Lanjut"}
             <ArrowRight size={18} />

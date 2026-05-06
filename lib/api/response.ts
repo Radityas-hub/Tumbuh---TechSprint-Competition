@@ -18,6 +18,10 @@ export function ok<T>(data: T, init?: ResponseInit) {
   return NextResponse.json<SuccessBody<T>>({ data }, init);
 }
 
+export function created<T>(data: T, init?: ResponseInit) {
+  return NextResponse.json<SuccessBody<T>>({ data }, { ...init, status: 201 });
+}
+
 export function errorResponse(error: AppError) {
   const body: ErrorBody = {
     error: {

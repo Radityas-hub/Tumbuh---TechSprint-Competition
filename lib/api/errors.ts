@@ -26,5 +26,8 @@ export function isAppError(error: unknown): error is AppError {
 export const unauthorized = (message = "Authentication required") =>
   new AppError("UNAUTHORIZED", message, 401);
 
+export const notFound = (message = "Resource not found") =>
+  new AppError("NOT_FOUND", message, 404);
+
 export const internalServerError = (message = "Internal server error", cause?: unknown) =>
   new AppError("INTERNAL_SERVER_ERROR", message, 500, { cause });
