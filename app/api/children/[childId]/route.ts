@@ -8,6 +8,7 @@ import {
   serializeChild,
   updateOwnedChildForGuardian,
 } from "../../../../lib/children";
+import { softDeleteChildData } from "../../../../lib/hardening";
 import { handleRouteError, ok } from "../../../../lib/api/response";
 import { parseJsonBody, parseParams, z } from "../../../../lib/api/validation";
 import { getOrCreateGuardianForRequest } from "../../../../lib/auth/session";
@@ -75,6 +76,30 @@ export async function PATCH(
     });
 
     return ok({ child });
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ childId: string }> },
+) {
+  try {
+    noStore();
+    const guardian = await getOrCreateGuardianForRequest(request);
+    const params = parseParams(await context.params, childParamsSchema);
+    const deleted = await softDeleteChildData(guardian.id, params.childId);
+
+    await createAuditLog({
+      guardianId: guardian.id,
+      childId: params.childId,
+      action: "child.deleted",
+      metadata: deleted,
+      request,
+    });
+
+    return ok({ deleted });
   } catch (error) {
     return handleRouteError(error);
   }

@@ -219,6 +219,61 @@ type RoadmapResponse = {
   items: RoadmapItemApiModel[];
 };
 
+type ArticleApiModel = {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  readTime: number;
+  summary: string;
+  content: string;
+  published: boolean;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ArticlesResponse = {
+  articles: ArticleApiModel[];
+};
+
+type AssistantConversationApiModel = {
+  id: string;
+  guardianId: string;
+  childId: string | null;
+  title: string | null;
+  createdAt: string;
+  updatedAt: string;
+  messages: Array<{
+    id: string;
+    role: string;
+    content: string;
+    metadata: Record<string, unknown> | null;
+    createdAt: string;
+  }>;
+};
+
+type AssistantChatResponse = {
+  reply: string;
+  conversation: AssistantConversationApiModel;
+};
+
+type ConsultationRecommendationApiModel = {
+  title: string;
+  reason: string;
+  prepare: string;
+  specialty: string;
+};
+
+type ConsultationResponse = {
+  child: {
+    id: string;
+    name: string;
+  };
+  latestInsightSummary: string | null;
+  recommendations: ConsultationRecommendationApiModel[];
+};
+
 type ProgressEntry = {
   id: string;
   type: "Teks" | "Foto" | "Suara";
@@ -373,6 +428,16 @@ const homeNavItems = [
   { label: "How it works", href: "#workflow" },
   { label: "Features", href: "#features" },
 ];
+
+function mapArticleToUi(article: ArticleApiModel) {
+  return {
+    title: article.title,
+    category: article.category,
+    readTime: `${article.readTime} menit`,
+    body: article.summary,
+    slug: article.slug,
+  };
+}
 
 function getDevelopmentAuthHeaders() {
   if (process.env.NODE_ENV === "production") {
@@ -1111,9 +1176,9 @@ export default function TumbuhApp({
               addEntry={handleProgressCreate}
             />
           )}
-          {screen === "education" && <Education />}
+          {screen === "education" && <Education activeChildId={activeChildId} />}
           {screen === "consultation" && (
-            <Consultation profile={profile} go={go} />
+            <Consultation profile={profile} go={go} activeChildId={activeChildId} />
           )}
           {screen === "handoff" && <BackendHandoff />}
         </AppShell>
@@ -2082,12 +2147,56 @@ function Progress({
   );
 }
 
-function Education() {
+function Education({
+  activeChildId,
+}: {
+  activeChildId: string | null;
+}) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [articleItems, setArticleItems] = useState(articles);
   const [activeArticle, setActiveArticle] = useState(articles[0]);
   const [question, setQuestion] = useState("");
   const [assistantReply, setAssistantReply] = useState(
     "Coba gunakan timer visual 5 menit sebelum berhenti, lalu beri dua pilihan aktivitas berikutnya. Catat durasi tantrum selama satu minggu untuk melihat apakah pola membaik.",
   );
+  const [assistantConversationId, setAssistantConversationId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadArticles() {
+      try {
+        const searchParams = new URLSearchParams();
+        if (searchQuery.trim()) {
+          searchParams.set("query", searchQuery.trim());
+        }
+
+        const data = await apiRequest<ArticlesResponse>(
+          `/api/articles${searchParams.toString() ? `?${searchParams.toString()}` : ""}`,
+        );
+
+        if (cancelled) {
+          return;
+        }
+
+        const nextArticles = data.articles.map(mapArticleToUi);
+        setArticleItems(nextArticles);
+        if (nextArticles[0]) {
+          setActiveArticle(nextArticles[0]);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load articles", error);
+        }
+      }
+    }
+
+    void loadArticles();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchQuery]);
 
   const askAssistant = () => {
     const trimmed = question.trim();
@@ -2097,10 +2206,28 @@ function Education() {
       );
       return;
     }
-    setAssistantReply(
-      `Untuk pertanyaan "${trimmed}", mulai dari observasi 3 hal: kapan terjadi, apa pemicunya, dan apa yang membantu anak kembali tenang. Setelah itu simpan sebagai catatan agar pola mingguannya bisa terbaca.`,
-    );
-    setQuestion("");
+    void apiRequest<AssistantChatResponse>("/api/assistant/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        childId: activeChildId,
+        conversationId: assistantConversationId,
+        question: trimmed,
+      }),
+    })
+      .then((response) => {
+        setAssistantReply(response.reply);
+        setAssistantConversationId(response.conversation.id);
+        setQuestion("");
+      })
+      .catch((error) => {
+        console.error("Failed to ask assistant", error);
+        setAssistantReply(
+          "Pertanyaan belum berhasil dikirim. Coba lagi sebentar lagi. Jawaban dari assistant tetap bukan diagnosis.",
+        );
+      });
   };
 
   return (
@@ -2113,10 +2240,15 @@ function Education() {
         <Panel className="article-panel">
           <div className="search-box">
             <Search size={18} />
-            <input aria-label="Cari artikel" placeholder="Cari autisme, rutinitas visual, speech delay" />
+            <input
+              aria-label="Cari artikel"
+              placeholder="Cari autisme, rutinitas visual, speech delay"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+            />
           </div>
           <div className="article-grid">
-            {articles.map((article) => (
+            {articleItems.map((article) => (
               <article key={article.title} className="article-card">
                 <span>{article.category} • {article.readTime}</span>
                 <h3>{article.title}</h3>
@@ -2172,20 +2304,67 @@ function Education() {
 function Consultation({
   profile,
   go,
+  activeChildId,
 }: {
   profile: ChildProfile;
   go: (screen: Screen) => void;
+  activeChildId: string | null;
 }) {
   const [selectedConsult, setSelectedConsult] = useState("Speech therapist");
+  const [recommendations, setRecommendations] = useState<ConsultationRecommendationApiModel[]>([]);
+  const [latestInsightSummary, setLatestInsightSummary] = useState<string | null>(null);
 
-  return (
-    <>
-      <WorkspaceHeader
-        title="Rekomendasi konsultasi"
-        body={`Berdasarkan fokus ${profile.name}, UI menampilkan alasan konsultasi dan data yang perlu dibawa.`}
-      />
-      <div className="consult-grid">
-        {[
+  useEffect(() => {
+    if (!activeChildId) {
+      setRecommendations([]);
+      setLatestInsightSummary(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadRecommendations() {
+      try {
+        const data = await apiRequest<ConsultationResponse>(
+          `/api/children/${activeChildId}/consultations/recommendations`,
+        );
+
+        if (cancelled) {
+          return;
+        }
+
+        setRecommendations(data.recommendations);
+        setLatestInsightSummary(data.latestInsightSummary);
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load consultation recommendations", error);
+        }
+      }
+    }
+
+    void loadRecommendations();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeChildId]);
+
+  const consultCards =
+    recommendations.length > 0
+      ? recommendations.map((item) => ({
+          icon:
+            item.title === "Speech therapist" ? (
+              <Stethoscope size={24} />
+            ) : item.title === "Psikolog anak" ? (
+              <HeartHandshake size={24} />
+            ) : (
+              <MapPin size={24} />
+            ),
+          title: item.title,
+          reason: item.reason,
+          prepare: item.prepare,
+        }))
+      : [
           {
             icon: <Stethoscope size={24} />,
             title: "Speech therapist",
@@ -2210,7 +2389,16 @@ function Consultation({
             prepare:
               "Backend perlu consent lokasi dan filter jarak, spesialisasi, serta jam layanan.",
           },
-        ].map((item) => (
+        ];
+
+  return (
+    <>
+      <WorkspaceHeader
+        title="Rekomendasi konsultasi"
+        body={`Berdasarkan fokus ${profile.name}, backend menampilkan alasan konsultasi dan data yang perlu dibawa.${latestInsightSummary ? ` Insight terbaru: ${latestInsightSummary}` : ""}`}
+      />
+      <div className="consult-grid">
+        {consultCards.map((item) => (
           <Panel
             key={item.title}
             className={cx(

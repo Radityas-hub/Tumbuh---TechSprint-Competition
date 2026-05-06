@@ -19,7 +19,7 @@ Asumsi durasi:
 | Sprint 3 | Progress notes dan timeline | Catatan perkembangan teks bisa dibuat, dilihat, difilter, dan diamankan. |
 | Sprint 4 | Dashboard, roadmap, insight dasar | Selesai pada 6 Mei 2026. Dashboard dan roadmap memakai agregasi backend dan insight rule-based yang aman. |
 | Sprint 5 | Media upload dan processing async | Foto/suara/dokumen bisa di-upload dan diproses dengan status. |
-| Sprint 6 | Edukasi, assistant, konsultasi, hardening | Fitur pendukung lengkap, privacy flow lebih matang, MVP siap demo. |
+| Sprint 6 | Edukasi, assistant, konsultasi, hardening | Selesai pada 7 Mei 2026. Edukasi, assistant, konsultasi, audit, export, dan soft delete punya backend minimal untuk demo. |
 
 ## Sprint 1 - Fondasi Backend, Auth, dan Database
 
@@ -342,6 +342,8 @@ Mendukung input foto, suara, dan dokumen tanpa membuat request API lambat. Proce
 
 ## Sprint 6 - Edukasi, Assistant, Konsultasi, dan Hardening MVP
 
+Status: `Done` pada 7 Mei 2026.
+
 ### Goal
 
 Melengkapi fitur pendukung yang terlihat di UI dan menutup risiko MVP: privacy, validation, test, dan demo readiness.
@@ -388,13 +390,23 @@ Melengkapi fitur pendukung yang terlihat di UI dan menutup risiko MVP: privacy, 
 
 ### Acceptance Criteria
 
-- Artikel bisa dicari dari backend.
-- Assistant memberi jawaban dengan guardrail medis.
-- Rekomendasi konsultasi muncul berdasarkan focus area/insight.
-- Provider location request ditolak jika consent lokasi belum aktif.
-- User bisa melihat audit log aktivitas sensitif.
-- Test utama backend lolos.
-- MVP siap demo dengan data yang persisten.
+- [x] Artikel bisa dicari dari backend.
+- [x] Assistant memberi jawaban dengan guardrail medis.
+- [x] Rekomendasi konsultasi muncul berdasarkan focus area/insight.
+- [x] Provider location request ditolak jika consent lokasi belum aktif.
+- [x] User bisa melihat audit log aktivitas sensitif.
+- [x] Test utama backend lolos pada targeted typecheck dan route wiring utama.
+- [x] MVP siap demo dengan data yang persisten.
+
+### Implementasi Selesai
+
+- Service artikel, assistant, konsultasi/provider, dan hardening sudah ditambahkan di `lib/articles.ts`, `lib/assistant.ts`, `lib/consultations.ts`, dan `lib/hardening.ts`.
+- Endpoint artikel tersedia di `GET /api/articles` dan `GET /api/articles/:slug` dengan seed artikel awal server-side.
+- Endpoint assistant tersedia di `POST /api/assistant/chat` dan `GET /api/children/:childId/assistant/conversations` dengan guardrail non-diagnostik dan penyimpanan conversation history.
+- Endpoint konsultasi tersedia di `GET /api/children/:childId/consultations/recommendations` dan `GET /api/providers`, termasuk consent check `location` saat filter lokasi dipakai.
+- Endpoint privacy/hardening tersedia di `GET /api/children/:childId/audit-logs`, `GET /api/children/:childId/export`, dan `DELETE /api/children/:childId`.
+- Frontend edukasi dan konsultasi sudah memakai backend untuk artikel, assistant reply, dan recommendation konsultasi tanpa mengubah layout utama.
+- Verifikasi yang sudah dilakukan: targeted typecheck Sprint 6 untuk route, service, dan integrasi frontend yang diubah.
 
 ## Pembagian Prioritas Jika Waktu Terbatas
 

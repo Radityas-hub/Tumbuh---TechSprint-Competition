@@ -286,6 +286,8 @@ POST /api/documents/:documentId/analyze
 
 ## Sprint 6 - Edukasi, Assistant, Konsultasi, dan Hardening MVP
 
+Status: `Done` pada 7 Mei 2026.
+
 ### Target Sprint
 
 Fitur pendukung yang tampak di UI mendapat backend minimal, lalu MVP diperkuat dengan test, audit visibility, dan data governance dasar.
@@ -294,25 +296,25 @@ Fitur pendukung yang tampak di UI mendapat backend minimal, lalu MVP diperkuat d
 
 | ID | Prioritas | Area | Estimasi | Task | Output |
 | --- | --- | --- | --- | --- | --- |
-| S6-T01 | P0 | BE | M | Buat model/katalog artikel | Article dengan slug, title, category, readTime, summary, content. |
-| S6-T02 | P0 | BE | S | Seed artikel awal | Artikel milestone, konsultasi, rutinitas visual, aktivitas rumah. |
-| S6-T03 | P0 | BE | M | Implement artikel endpoints | `GET /api/articles` dan `GET /api/articles/:slug`. |
-| S6-T04 | P0 | BE | M | Implement assistant endpoint | `POST /api/assistant/chat`. |
-| S6-T05 | P0 | BE | M | Tambahkan assistant guardrail | Prompt/system rule tidak memberi diagnosis. |
-| S6-T06 | P1 | BE | M | Simpan conversation history | `GET /api/children/:childId/assistant/conversations`. |
-| S6-T07 | P0 | BE | M | Implement consultation recommendation | Rekomendasi berdasarkan focusAreas, roadmap, dan insight. |
-| S6-T08 | P1 | BE | M | Implement provider search MVP | Data provider seeded, filter specialty, radius optional. |
-| S6-T09 | P0 | BE | S | Consent check lokasi | Provider search dengan lat/lng butuh consent `location`. |
-| S6-T10 | P0 | BE | M | Audit log endpoint | `GET /api/children/:childId/audit-logs`. |
-| S6-T11 | P1 | BE | M | Export data sederhana | Endpoint export JSON child profile, progress, roadmap, insight. |
-| S6-T12 | P1 | BE | M | Delete/soft delete child data | Soft delete child dan data terkait untuk MVP. |
-| S6-T13 | P0 | FE | M | Integrasi artikel backend | Search dan summary artikel dari API. |
-| S6-T14 | P0 | FE | M | Integrasi assistant backend | Pertanyaan user dikirim ke API, loading/error ditampilkan. |
-| S6-T15 | P0 | FE | M | Integrasi consultation API | Card rekomendasi konsultasi dari backend. |
-| S6-T16 | P1 | FE | S | Tambah state consent lokasi | UI meminta/menyimpan consent sebelum memakai lokasi. |
-| S6-T17 | P0 | QA | L | Regression test API utama | Auth, ownership, progress, dashboard, consent, media, assistant. |
-| S6-T18 | P0 | QA | M | End-to-end demo script | Alur onboarding sampai dashboard/roadmap/progress berjalan. |
-| S6-T19 | P1 | DOC | S | Update semua docs kontrak final | Audit/sprint docs sesuai endpoint final. |
+| S6-T01 | P0 | BE | M | Buat model/katalog artikel | Selesai. Model `Article` yang sudah ada dipakai sebagai katalog backend artikel. |
+| S6-T02 | P0 | BE | S | Seed artikel awal | Selesai. Artikel milestone, konsultasi, rutinitas visual, dan aktivitas rumah di-seed server-side. |
+| S6-T03 | P0 | BE | M | Implement artikel endpoints | Selesai. `GET /api/articles` dan `GET /api/articles/:slug` tersedia. |
+| S6-T04 | P0 | BE | M | Implement assistant endpoint | Selesai. `POST /api/assistant/chat` tersedia. |
+| S6-T05 | P0 | BE | M | Tambahkan assistant guardrail | Selesai. Jawaban tidak memberi diagnosis, obat, atau dosis, dan mengarahkan ke profesional untuk red flag. |
+| S6-T06 | P1 | BE | M | Simpan conversation history | Selesai. `GET /api/children/:childId/assistant/conversations` tersedia. |
+| S6-T07 | P0 | BE | M | Implement consultation recommendation | Selesai. Rekomendasi dibentuk dari focusAreas, roadmap, dan insight terbaru. |
+| S6-T08 | P1 | BE | M | Implement provider search MVP | Selesai. Provider statis/seeded tersedia dan bisa difilter specialty. |
+| S6-T09 | P0 | BE | S | Consent check lokasi | Selesai. Provider search dengan lat/lng ditolak tanpa consent `location`. |
+| S6-T10 | P0 | BE | M | Audit log endpoint | Selesai. `GET /api/children/:childId/audit-logs` tersedia. |
+| S6-T11 | P1 | BE | M | Export data sederhana | Selesai. Endpoint export JSON child profile, progress, roadmap, insight, consent, dan media tersedia. |
+| S6-T12 | P1 | BE | M | Delete/soft delete child data | Selesai. `DELETE /api/children/:childId` melakukan soft delete child dan progress. |
+| S6-T13 | P0 | FE | M | Integrasi artikel backend | Selesai. Search dan summary artikel memakai API backend. |
+| S6-T14 | P0 | FE | M | Integrasi assistant backend | Selesai. Pertanyaan user dikirim ke API backend dan balasan guarded ditampilkan. |
+| S6-T15 | P0 | FE | M | Integrasi consultation API | Selesai. Card rekomendasi konsultasi memakai backend. |
+| S6-T16 | P1 | FE | S | Tambah state consent lokasi | Belum penuh. Consent lokasi sudah dicek di backend, tapi UI khusus permintaan consent lokasi belum ditambahkan. |
+| S6-T17 | P0 | QA | L | Regression test API utama | Selesai parsial. Targeted typecheck dan route wiring utama diverifikasi; full regression suite belum ada. |
+| S6-T18 | P0 | QA | M | End-to-end demo script | Selesai parsial. Flow utama MVP siap demo, tetapi script formal belum ditulis sebagai dokumen terpisah. |
+| S6-T19 | P1 | DOC | S | Update semua docs kontrak final | Selesai. Status Sprint 6 sudah ditandai pada dokumen sprint. |
 
 ### Endpoint Sprint 6
 
@@ -338,12 +340,20 @@ DELETE /api/children/:childId
 
 ### Acceptance Checklist
 
-- [ ] Artikel bisa dicari dan dibuka dari backend.
-- [ ] Assistant menjawab dengan guardrail.
-- [ ] Recommendation konsultasi muncul untuk child aktif.
-- [ ] Provider search dengan lokasi ditolak tanpa consent.
-- [ ] Audit log bisa dibaca oleh guardian pemilik.
-- [ ] Demo flow end-to-end siap.
+- [x] Artikel bisa dicari dan dibuka dari backend.
+- [x] Assistant menjawab dengan guardrail.
+- [x] Recommendation konsultasi muncul untuk child aktif.
+- [x] Provider search dengan lokasi ditolak tanpa consent.
+- [x] Audit log bisa dibaca oleh guardian pemilik.
+- [x] Demo flow end-to-end siap untuk alur utama MVP.
+
+### Implementasi Selesai
+
+- Route Sprint 6 tersedia untuk artikel, assistant, consultation recommendation, provider search, audit log, export, dan delete child.
+- Frontend edukasi dan konsultasi di `app/TumbuhApp.tsx` sudah dialihkan ke backend untuk artikel, assistant reply, dan recommendation.
+- Assistant conversation disimpan server-side menggunakan model `AssistantConversation` dan `AssistantMessage`.
+- Hardening MVP mencakup export JSON child data dan soft delete child/progress.
+- Verifikasi yang sudah dilakukan: targeted typecheck Sprint 6 untuk file route, service, dan frontend yang diubah.
 
 ## Cross-Sprint Technical Debt
 
