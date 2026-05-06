@@ -1,7 +1,12 @@
 import type { Prisma } from "../generated/prisma/client";
 import { FocusArea, InputType } from "../generated/prisma/enums";
-import { notFound } from "./api/errors";
+import { badRequest, notFound } from "./api/errors";
 import { focusAreaLabels, type FocusAreaLabel, mapFocusAreasToEnum } from "./children";
+import {
+  ensureMediaMatchesProgressType,
+  linkMediaAssetToProgressEntry,
+  type SerializedMediaAsset,
+} from "./media";
 import { prisma } from "./prisma";
 
 export const progressInputTypeLabels = ["Teks", "Foto", "Suara"] as const;
@@ -48,6 +53,44 @@ const progressSelect = {
   observedAt: true,
   createdAt: true,
   updatedAt: true,
+  mediaAssets: {
+    orderBy: {
+      createdAt: "asc",
+    },
+    select: {
+      id: true,
+      childId: true,
+      progressEntryId: true,
+      type: true,
+      storageBucket: true,
+      storageKey: true,
+      url: true,
+      mimeType: true,
+      sizeBytes: true,
+      status: true,
+      processingError: true,
+      processedOutput: true,
+      createdAt: true,
+      updatedAt: true,
+      processingJobs: {
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 1,
+        select: {
+          id: true,
+          kind: true,
+          status: true,
+          attempts: true,
+          error: true,
+          createdAt: true,
+          updatedAt: true,
+          startedAt: true,
+          completedAt: true,
+        },
+      },
+    },
+  },
 } satisfies Prisma.ProgressEntrySelect;
 
 type ProgressRecord = Prisma.ProgressEntryGetPayload<{ select: typeof progressSelect }>;
@@ -63,6 +106,7 @@ export type SerializedProgressEntry = {
   observedAt: string;
   createdAt: string;
   updatedAt: string;
+  mediaAssets: SerializedMediaAsset[];
 };
 
 export type ListProgressInput = {
@@ -80,6 +124,7 @@ export type CreateProgressInput = {
   title?: string | null;
   note?: string | null;
   observedAt?: string;
+  mediaId?: string;
 };
 
 export type UpdateProgressInput = Partial<CreateProgressInput>;
@@ -104,6 +149,53 @@ export function serializeProgressEntry(entry: ProgressRecord): SerializedProgres
     observedAt: entry.observedAt.toISOString(),
     createdAt: entry.createdAt.toISOString(),
     updatedAt: entry.updatedAt.toISOString(),
+    mediaAssets: entry.mediaAssets.map((asset) => ({
+      id: asset.id,
+      childId: asset.childId,
+      progressEntryId: asset.progressEntryId,
+      type:
+        asset.type === InputType.PHOTO
+          ? "Foto"
+          : asset.type === InputType.AUDIO
+            ? "Suara"
+            : "Dokumen",
+      storageBucket: asset.storageBucket,
+      storageKey: asset.storageKey,
+      url: asset.url,
+      mimeType: asset.mimeType,
+      sizeBytes: asset.sizeBytes,
+      status: asset.status,
+      statusLabel:
+        asset.status === "PENDING_UPLOAD"
+          ? "Menunggu upload"
+          : asset.status === "UPLOADED"
+            ? "Terunggah"
+            : asset.status === "PROCESSING"
+              ? "Sedang diproses"
+              : asset.status === "COMPLETED"
+                ? "Selesai"
+                : "Gagal",
+      processingError: asset.processingError,
+      processedOutput:
+        asset.processedOutput && typeof asset.processedOutput === "object" && !Array.isArray(asset.processedOutput)
+          ? (asset.processedOutput as Record<string, unknown>)
+          : null,
+      latestJob: asset.processingJobs[0]
+        ? {
+            id: asset.processingJobs[0].id,
+            kind: asset.processingJobs[0].kind,
+            status: asset.processingJobs[0].status,
+            attempts: asset.processingJobs[0].attempts,
+            error: asset.processingJobs[0].error,
+            createdAt: asset.processingJobs[0].createdAt.toISOString(),
+            updatedAt: asset.processingJobs[0].updatedAt.toISOString(),
+            startedAt: asset.processingJobs[0].startedAt?.toISOString() ?? null,
+            completedAt: asset.processingJobs[0].completedAt?.toISOString() ?? null,
+          }
+        : null,
+      createdAt: asset.createdAt.toISOString(),
+      updatedAt: asset.updatedAt.toISOString(),
+    })),
   };
 }
 
@@ -176,6 +268,46 @@ export async function listProgressEntriesForChild(
 }
 
 export async function createProgressEntryForChild(childId: string, input: CreateProgressInput) {
+  if (input.mediaId && input.inputType === "Teks") {
+    throw badRequest("mediaId cannot be used with text entries");
+  }
+
+  let linkedMedia:
+    | {
+        id: string;
+        type: "Foto" | "Suara" | "Dokumen";
+      }
+    | null = null;
+
+  if (input.mediaId) {
+    const mediaAsset = await prisma.mediaAsset.findFirst({
+      where: {
+        id: input.mediaId,
+        childId,
+      },
+      select: {
+        id: true,
+        type: true,
+      },
+    });
+
+    if (!mediaAsset) {
+      throw notFound("Media asset not found");
+    }
+
+    linkedMedia = {
+      id: mediaAsset.id,
+      type:
+        mediaAsset.type === InputType.PHOTO
+          ? "Foto"
+          : mediaAsset.type === InputType.AUDIO
+            ? "Suara"
+            : "Dokumen",
+    };
+
+    ensureMediaMatchesProgressType(linkedMedia.type, input.inputType);
+  }
+
   const entry = await prisma.progressEntry.create({
     data: {
       childId,
@@ -189,7 +321,18 @@ export async function createProgressEntryForChild(childId: string, input: Create
     select: progressSelect,
   });
 
-  return serializeProgressEntry(entry);
+  if (linkedMedia) {
+    await linkMediaAssetToProgressEntry(childId, linkedMedia.id, entry.id);
+  }
+
+  const refreshedEntry = await prisma.progressEntry.findUniqueOrThrow({
+    where: {
+      id: entry.id,
+    },
+    select: progressSelect,
+  });
+
+  return serializeProgressEntry(refreshedEntry);
 }
 
 export async function getOwnedProgressEntry(guardianId: string, entryId: string) {

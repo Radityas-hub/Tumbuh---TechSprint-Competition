@@ -41,6 +41,7 @@ const createProgressSchema = z.object({
   inputType: z.enum(progressInputTypeLabels),
   title: z.string().trim().max(120, "title must be 120 characters or less").optional().nullable(),
   note: z.string().trim().min(1, "note is required").max(2000, "note must be 2000 characters or less"),
+  mediaId: z.string().trim().min(1, "mediaId cannot be empty").optional(),
   observedAt: z
     .string()
     .refine((value) => !Number.isNaN(Date.parse(value)), "observedAt must be a valid ISO date")

@@ -26,6 +26,12 @@ export function isAppError(error: unknown): error is AppError {
 export const unauthorized = (message = "Authentication required") =>
   new AppError("UNAUTHORIZED", message, 401);
 
+export const forbidden = (message = "You do not have access to this resource") =>
+  new AppError("FORBIDDEN", message, 403);
+
+export const badRequest = (message = "Bad request", details?: unknown) =>
+  new AppError("BAD_REQUEST", message, 400, { details });
+
 export const notFound = (message = "Resource not found") =>
   new AppError("NOT_FOUND", message, 404);
 

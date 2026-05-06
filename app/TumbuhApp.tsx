@@ -118,6 +118,36 @@ type ProgressEntryApiModel = {
   observedAt: string;
   createdAt: string;
   updatedAt: string;
+  mediaAssets: MediaAssetApiModel[];
+};
+
+type MediaAssetApiModel = {
+  id: string;
+  childId: string;
+  progressEntryId: string | null;
+  type: "Foto" | "Suara" | "Dokumen";
+  storageBucket: string | null;
+  storageKey: string;
+  url: string | null;
+  mimeType: string | null;
+  sizeBytes: number | null;
+  status: "PENDING_UPLOAD" | "UPLOADED" | "PROCESSING" | "COMPLETED" | "FAILED";
+  statusLabel: string;
+  processingError: string | null;
+  processedOutput: Record<string, unknown> | null;
+  latestJob: {
+    id: string;
+    kind: string;
+    status: "PENDING" | "RUNNING" | "COMPLETED" | "FAILED";
+    attempts: number;
+    error: string | null;
+    createdAt: string;
+    updatedAt: string;
+    startedAt: string | null;
+    completedAt: string | null;
+  } | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 type ProgressListResponse = {
@@ -197,6 +227,18 @@ type ProgressEntry = {
   area: Area;
   date: string;
   insight: string;
+  mediaUrl?: string | null;
+  mediaStatusLabel?: string | null;
+  mediaProcessingError?: string | null;
+};
+
+type MediaUploadResponse = {
+  asset: MediaAssetApiModel;
+  upload: {
+    uploadUrl: string;
+    uploadMethod: "PUT";
+    uploadHeaders: Record<string, string>;
+  };
 };
 
 const initialProfile: ChildProfile = {
@@ -385,6 +427,32 @@ async function apiRequest<T>(input: string, init?: RequestInit): Promise<T> {
   return payload.data as T;
 }
 
+async function uploadBinary(
+  uploadUrl: string,
+  file: File,
+  uploadMethod: "PUT",
+  uploadHeaders: Record<string, string>,
+) {
+  const response = await fetch(uploadUrl, {
+    method: uploadMethod,
+    headers: uploadHeaders,
+    body: file,
+    cache: "no-store",
+  });
+
+  const payload = (await response.json()) as { error?: ApiErrorResponse["error"] };
+
+  if (!response.ok) {
+    const error = new Error(payload.error?.message || "Upload failed") as Error & {
+      code?: string;
+      status?: number;
+    };
+    error.code = payload.error?.code;
+    error.status = response.status;
+    throw error;
+  }
+}
+
 function mapChildToProfile(child: ChildApiModel): ChildProfile {
   return {
     name: child.name,
@@ -413,6 +481,8 @@ function formatObservedDate(value: string) {
 }
 
 function mapProgressEntryToUi(entry: ProgressEntryApiModel): ProgressEntry {
+  const firstMediaAsset = entry.mediaAssets[0];
+
   return {
     id: entry.id,
     type: entry.inputType,
@@ -429,6 +499,9 @@ function mapProgressEntryToUi(entry: ProgressEntryApiModel): ProgressEntry {
     insight:
       entry.insight ||
       "Catatan baru siap dikirim ke backend untuk ekstraksi pola, ringkasan, dan pembaruan roadmap.",
+    mediaUrl: firstMediaAsset?.url ?? null,
+    mediaStatusLabel: firstMediaAsset?.statusLabel ?? null,
+    mediaProcessingError: firstMediaAsset?.processingError ?? null,
   };
 }
 
@@ -701,9 +774,53 @@ export default function TumbuhApp({
     inputType: ProgressEntry["type"];
     note: string;
     title?: string;
+    file?: File | null;
   }) {
     if (!activeChildId) {
       return;
+    }
+
+    let mediaId: string | undefined;
+
+    if (payload.inputType !== "Teks") {
+      if (!payload.file) {
+        throw new Error("File is required for media entries");
+      }
+
+      await apiRequest<{ consent: { id: string } }>(`/api/children/${activeChildId}/consents`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          scope: "media_upload",
+          granted: true,
+          source: "progress_form",
+        }),
+      });
+
+      const uploadRequest = await apiRequest<MediaUploadResponse>("/api/media/upload-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          childId: activeChildId,
+          type: payload.inputType,
+          fileName: payload.file.name,
+          mimeType: payload.file.type || "application/octet-stream",
+          sizeBytes: payload.file.size,
+        }),
+      });
+
+      await uploadBinary(
+        uploadRequest.upload.uploadUrl,
+        payload.file,
+        uploadRequest.upload.uploadMethod,
+        uploadRequest.upload.uploadHeaders,
+      );
+
+      mediaId = uploadRequest.asset.id;
     }
 
     await apiRequest<{ entry: ProgressEntryApiModel }>(
@@ -718,10 +835,17 @@ export default function TumbuhApp({
           inputType: payload.inputType,
           note: payload.note,
           title: payload.title ?? null,
+          mediaId,
           observedAt: new Date().toISOString(),
         }),
       },
     );
+
+    if (mediaId) {
+      await apiRequest<{ asset: MediaAssetApiModel }>(`/api/media/${mediaId}/process`, {
+        method: "POST",
+      });
+    }
 
     await refreshProgressData(activeChildId);
     await refreshAggregateData(activeChildId);
@@ -1794,16 +1918,19 @@ function Progress({
     inputType: ProgressEntry["type"];
     note: string;
     title?: string;
+    file?: File | null;
   }) => Promise<void>;
 }) {
   const [note, setNote] = useState("");
   const [type, setType] = useState<ProgressEntry["type"]>("Teks");
   const [area, setArea] = useState<Area>("Komunikasi");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!note.trim()) return;
+    if (type !== "Teks" && !selectedFile) return;
     setIsSubmitting(true);
     void addEntry({
       inputType: type,
@@ -1815,9 +1942,11 @@ function Progress({
           : type === "Foto"
             ? "Observasi dari aktivitas visual"
             : "Ringkasan voice note orang tua",
+      file: selectedFile,
     })
       .then(() => {
         setNote("");
+        setSelectedFile(null);
       })
       .catch((error) => {
         console.error("Failed to save progress entry", error);
@@ -1872,10 +2001,20 @@ function Progress({
             {type !== "Teks" && (
               <div className="upload-box">
                 <Upload size={22} />
-                <span>
-                  Area upload frontend. Backend dapat menghubungkan file storage
-                  dan media processing.
-                </span>
+                <div>
+                  <span>
+                    {selectedFile
+                      ? `File terpilih: ${selectedFile.name}`
+                      : type === "Foto"
+                        ? "Pilih foto untuk diunggah ke backend."
+                        : "Pilih file audio untuk diunggah ke backend."}
+                  </span>
+                  <input
+                    type="file"
+                    accept={type === "Foto" ? "image/*" : "audio/*"}
+                    onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+                  />
+                </div>
               </div>
             )}
             <button className="primary-button full" type="submit" disabled={isSubmitting}>
@@ -1917,6 +2056,17 @@ function Progress({
                   <span className="entry-type">{entry.type}</span>
                   <h3>{entry.title}</h3>
                   <p>{entry.note}</p>
+                  {entry.type === "Foto" && entry.mediaUrl ? (
+                    <div className="entry-photo-preview">
+                      <img src={entry.mediaUrl} alt={entry.title} />
+                    </div>
+                  ) : null}
+                  {entry.mediaStatusLabel ? (
+                    <small>
+                      Media {entry.mediaStatusLabel}
+                      {entry.mediaProcessingError ? ` - ${entry.mediaProcessingError}` : ""}
+                    </small>
+                  ) : null}
                   <small>{entry.date} • {entry.area}</small>
                 </div>
                 <div className="entry-insight">
