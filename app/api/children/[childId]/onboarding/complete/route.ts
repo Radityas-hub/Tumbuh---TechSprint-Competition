@@ -5,6 +5,7 @@ import { getOrCreateGuardianForRequest } from "../../../../../../lib/auth/sessio
 import { createAuditLog } from "../../../../../../lib/audit";
 import { markChildOnboardingComplete } from "../../../../../../lib/children";
 import { seedOnboardingConsents } from "../../../../../../lib/consents";
+import { ensureInitialRoadmapForChild } from "../../../../../../lib/roadmap";
 import { handleRouteError, ok } from "../../../../../../lib/api/response";
 import { parseParams, z } from "../../../../../../lib/api/validation";
 
@@ -23,12 +24,17 @@ export async function POST(
 
     const child = await markChildOnboardingComplete(guardian.id, params.childId);
     const consents = await seedOnboardingConsents(child.id);
+    const roadmapItems = await ensureInitialRoadmapForChild({
+      childId: child.id,
+      focusAreas: child.focusAreas,
+    });
 
     await createAuditLog({
       guardianId: guardian.id,
       childId: child.id,
       action: "onboarding.completed",
       metadata: {
+        roadmapItemCount: roadmapItems.length,
         consentScopes: consents.map((consent) => ({
           scope: consent.scope,
           granted: consent.granted,
@@ -40,6 +46,7 @@ export async function POST(
     return ok({
       child,
       consents,
+      roadmapItems,
     });
   } catch (error) {
     return handleRouteError(error);

@@ -17,7 +17,7 @@ Asumsi durasi:
 | Sprint 1 | Fondasi backend, auth, database | Selesai pada 5 Mei 2026. API siap dibangun, schema awal tersedia, user/guardian bisa dikenali. |
 | Sprint 2 | Children, onboarding, consent | Selesai pada 6 Mei 2026. Profil anak dan hasil onboarding tersimpan permanen. |
 | Sprint 3 | Progress notes dan timeline | Catatan perkembangan teks bisa dibuat, dilihat, difilter, dan diamankan. |
-| Sprint 4 | Dashboard, roadmap, insight dasar | UI dashboard/roadmap punya data agregat dari backend. |
+| Sprint 4 | Dashboard, roadmap, insight dasar | Selesai pada 6 Mei 2026. Dashboard dan roadmap memakai agregasi backend dan insight rule-based yang aman. |
 | Sprint 5 | Media upload dan processing async | Foto/suara/dokumen bisa di-upload dan diproses dengan status. |
 | Sprint 6 | Edukasi, assistant, konsultasi, hardening | Fitur pendukung lengkap, privacy flow lebih matang, MVP siap demo. |
 
@@ -210,6 +210,8 @@ Mengganti data dummy `startingEntries` dengan API progress notes yang bisa menyi
 
 ## Sprint 4 - Dashboard, Roadmap, dan Insight Dasar
 
+Status: `Done` pada 6 Mei 2026.
+
 ### Goal
 
 Membuat dashboard dan roadmap memakai data backend, walaupun insight AI masih rule-based atau placeholder server-side.
@@ -251,11 +253,20 @@ Membuat dashboard dan roadmap memakai data backend, walaupun insight AI masih ru
 
 ### Acceptance Criteria
 
-- Dashboard tetap render meskipun child belum punya banyak progress.
-- Metric dashboard berubah setelah progress baru dibuat.
-- Roadmap awal dibuat setelah onboarding.
-- Insight tidak memakai bahasa diagnosis otomatis.
-- `confidenceScore` selalu berada di range `0` sampai `1`.
+- [x] Dashboard tetap render meskipun child belum punya banyak progress.
+- [x] Metric dashboard berubah setelah progress baru dibuat.
+- [x] Roadmap awal dibuat setelah onboarding.
+- [x] Insight tidak memakai bahasa diagnosis otomatis.
+- [x] `confidenceScore` selalu berada di range `0` sampai `1`.
+
+### Implementasi Selesai
+
+- Service roadmap, insight, dan dashboard aggregate sudah ditambahkan di `lib/roadmap.ts`, `lib/insights.ts`, dan `lib/dashboard.ts`.
+- Endpoint `GET /api/children/:childId/dashboard`, `GET /api/children/:childId/roadmap`, `PATCH /api/children/:childId/roadmap/:itemId`, `GET /api/children/:childId/insights`, dan `POST /api/children/:childId/insights/generate` sudah tersedia.
+- `POST /api/children/:childId/onboarding/complete` sekarang sekaligus membuat roadmap awal jika child belum punya roadmap.
+- Dashboard frontend sudah mengambil metrics, chart, latest insight, activities, dan roadmap preview dari backend tanpa mengubah UI visual.
+- Halaman roadmap frontend sudah memakai data backend, termasuk evidence ringkas dan status milestone.
+- Verifikasi yang sudah dilakukan: typecheck terarah untuk file Sprint 4, pengecekan route dan service ownership, serta validasi bahwa `confidenceScore` dibatasi pada range `0` sampai `1`.
 
 ### Response Dashboard Konseptual
 

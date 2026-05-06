@@ -60,6 +60,12 @@ export function mapFocusAreasToEnum(focusAreas: FocusAreaLabel[]) {
   return focusAreas.map((focusArea) => focusAreaToEnumMap[focusArea]);
 }
 
+export function mapFocusAreasToLabel(
+  focusAreas: Array<(typeof FocusArea)[keyof typeof FocusArea]>,
+) {
+  return focusAreas.map((focusArea) => enumToFocusAreaMap[focusArea]);
+}
+
 function toDateTimeString(dateValue: string) {
   return new Date(`${dateValue}T00:00:00.000Z`).toISOString();
 }

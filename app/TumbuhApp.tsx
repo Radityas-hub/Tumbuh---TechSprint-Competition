@@ -128,6 +128,67 @@ type ProgressListResponse = {
   };
 };
 
+type RoadmapItemApiModel = {
+  id: string;
+  childId: string;
+  area: Area;
+  title: string;
+  detail: string | null;
+  status: "ACHIEVED" | "IN_PROGRESS" | "NEXT_TARGET" | "NEEDS_ATTENTION" | "PAUSED";
+  statusLabel: string;
+  tone: string;
+  evidence: string[];
+  confidenceScore: number;
+  sortOrder: number;
+  achievedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type InsightApiModel = {
+  id: string;
+  childId: string;
+  progressEntryId: string | null;
+  kind: "WEEKLY" | "ENTRY" | "ROADMAP" | "ASSISTANT" | "DOCUMENT";
+  summary: string;
+  alerts: string[];
+  recommendations: string[];
+  confidenceScore: number;
+  rangeStart: string | null;
+  rangeEnd: string | null;
+  generatedBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type DashboardData = {
+  metrics: {
+    notesThisWeek: number;
+    completedActivities: number;
+    achievedTargets: number;
+    alertCount: number;
+  };
+  chart: Array<{
+    label: string;
+    value: number;
+  }>;
+  trend: {
+    direction: "up" | "flat";
+    label: string;
+  };
+  latestInsight: InsightApiModel;
+  activities: Array<{
+    title: string;
+    body: string;
+    area: string;
+  }>;
+  roadmapPreview: RoadmapItemApiModel[];
+};
+
+type RoadmapResponse = {
+  items: RoadmapItemApiModel[];
+};
+
 type ProgressEntry = {
   id: string;
   type: "Teks" | "Foto" | "Suara";
@@ -154,7 +215,7 @@ const navItems: { id: Screen; label: string; icon: ReactNode }[] = [
   { id: "handoff", label: "Backend", icon: <FileText size={18} /> },
 ];
 
-const roadmap = [
+const defaultRoadmap = [
   {
     title: "Kontak mata 5 detik",
     status: "Tercapai",
@@ -185,7 +246,7 @@ const roadmap = [
   },
 ];
 
-const activities = [
+const defaultActivities = [
   {
     icon: <TimerReset size={20} />,
     title: "Timer visual sebelum transisi",
@@ -371,6 +432,14 @@ function mapProgressEntryToUi(entry: ProgressEntryApiModel): ProgressEntry {
   };
 }
 
+function getChartBarHeight(value: number, maxValue: number) {
+  if (maxValue <= 0) {
+    return 18;
+  }
+
+  return Math.max(18, Math.round((value / maxValue) * 82));
+}
+
 export default function TumbuhApp({
   initialScreen = "home",
 }: {
@@ -388,6 +457,8 @@ export default function TumbuhApp({
   const [guardian, setGuardian] = useState<GuardianProfile | null>(null);
   const [activeChildId, setActiveChildId] = useState<string | null>(null);
   const [activeChild, setActiveChild] = useState<ChildApiModel | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [roadmapItems, setRoadmapItems] = useState<RoadmapItemApiModel[]>([]);
   const [authState, setAuthState] = useState<"loading" | "ready" | "unauthenticated" | "error">("loading");
 
   const go = (target: Screen, options?: { replace?: boolean }) => {
@@ -420,6 +491,8 @@ export default function TumbuhApp({
         setActiveChild(null);
         setEntries([]);
         setTimelineEntries([]);
+        setDashboardData(null);
+        setRoadmapItems([]);
         setAuthState("unauthenticated");
         return null;
       }
@@ -431,6 +504,8 @@ export default function TumbuhApp({
       setActiveChild(null);
       setEntries([]);
       setTimelineEntries([]);
+      setDashboardData(null);
+      setRoadmapItems([]);
       setAuthState("error");
       return null;
     }
@@ -471,6 +546,30 @@ export default function TumbuhApp({
       console.error("Failed to load progress entries", error);
       setEntries([]);
       setTimelineEntries([]);
+    }
+  }
+
+  async function refreshAggregateData(nextChildId?: string | null) {
+    const childId = nextChildId ?? activeChildId;
+
+    if (!childId) {
+      setDashboardData(null);
+      setRoadmapItems([]);
+      return;
+    }
+
+    try {
+      const [dashboard, roadmap] = await Promise.all([
+        apiRequest<DashboardData>(`/api/children/${childId}/dashboard`),
+        apiRequest<RoadmapResponse>(`/api/children/${childId}/roadmap`),
+      ]);
+
+      setDashboardData(dashboard);
+      setRoadmapItems(roadmap.items);
+    } catch (error) {
+      console.error("Failed to load dashboard data", error);
+      setDashboardData(null);
+      setRoadmapItems([]);
     }
   }
 
@@ -523,6 +622,8 @@ export default function TumbuhApp({
           setActiveChild(null);
           setEntries([]);
           setTimelineEntries([]);
+          setDashboardData(null);
+          setRoadmapItems([]);
           return;
         }
 
@@ -555,6 +656,18 @@ export default function TumbuhApp({
     void refreshProgressData(activeChildId);
   }, [authState, activeChildId, selectedArea]);
 
+  useEffect(() => {
+    if (authState !== "ready" || !activeChildId) {
+      if (!activeChildId) {
+        setDashboardData(null);
+        setRoadmapItems([]);
+      }
+      return;
+    }
+
+    void refreshAggregateData(activeChildId);
+  }, [authState, activeChildId]);
+
   async function handleOnboardingComplete(payload: OnboardingPayload) {
     const requestInit: RequestInit = {
       method: activeChildId ? "PATCH" : "POST",
@@ -579,6 +692,7 @@ export default function TumbuhApp({
     setProfile(mapChildToProfile(completedResponse.child));
     setActiveChildId(completedResponse.child.id);
     await refreshSession();
+    await refreshAggregateData(completedResponse.child.id);
     go("dashboard", { replace: true });
   }
 
@@ -610,6 +724,7 @@ export default function TumbuhApp({
     );
 
     await refreshProgressData(activeChildId);
+    await refreshAggregateData(activeChildId);
   }
 
   useEffect(() => {
@@ -855,9 +970,15 @@ export default function TumbuhApp({
               entries={entries}
               go={go}
               guardianName={guardianName}
+              dashboardData={dashboardData}
             />
           )}
-          {screen === "roadmap" && <Roadmap />}
+          {screen === "roadmap" && (
+            <Roadmap
+              items={roadmapItems}
+              latestInsight={dashboardData?.latestInsight ?? null}
+            />
+          )}
           {screen === "progress" && (
             <Progress
               entries={timelineEntries}
@@ -1470,19 +1591,41 @@ function Dashboard({
   entries,
   go,
   guardianName,
+  dashboardData,
 }: {
   profile: ChildProfile;
   entries: ProgressEntry[];
   go: (screen: Screen) => void;
   guardianName: string;
+  dashboardData: DashboardData | null;
 }) {
+  const chart = dashboardData?.chart.length
+    ? dashboardData.chart
+    : [
+        { label: "S", value: 1 },
+        { label: "S", value: 2 },
+        { label: "R", value: 1 },
+        { label: "K", value: 3 },
+        { label: "J", value: 2 },
+        { label: "S", value: 4 },
+        { label: "M", value: 3 },
+      ];
+  const maxChartValue = Math.max(...chart.map((item) => item.value), 0);
+  const activities = dashboardData?.activities.length ? dashboardData.activities : defaultActivities;
+  const roadmapPreview = dashboardData?.roadmapPreview.length
+    ? dashboardData.roadmapPreview
+    : defaultRoadmap;
+  const latestInsight =
+    dashboardData?.latestInsight.summary ||
+    "Insight akan muncul setelah catatan rutin terkumpul. Ringkasan ini tetap bersifat pendamping dan bukan diagnosis.";
+
   return (
     <>
       <WorkspaceHeader
         title={`Selamat pagi, ${guardianName}`}
         body={`Fokus ${profile.name} minggu ini: ${profile.focusAreas.join(
           " dan ",
-        )}. Semua insight di bawah siap dihubungkan ke backend.`}
+        )}. Semua insight di bawah berasal dari ringkasan backend terbaru.`}
         action={
           <button className="primary-button" onClick={() => go("progress")}>
             <Plus size={18} /> Catat perkembangan
@@ -1490,10 +1633,26 @@ function Dashboard({
         }
       />
       <div className="metric-grid">
-        <Metric label="Catatan minggu ini" value={String(entries.length)} tone="green" />
-        <Metric label="Aktivitas selesai" value="7" tone="blue" />
-        <Metric label="Target tercapai" value="2" tone="amber" />
-        <Metric label="Alert penting" value="1" tone="coral" />
+        <Metric
+          label="Catatan minggu ini"
+          value={String(dashboardData?.metrics.notesThisWeek ?? entries.length)}
+          tone="green"
+        />
+        <Metric
+          label="Aktivitas selesai"
+          value={String(dashboardData?.metrics.completedActivities ?? 0)}
+          tone="blue"
+        />
+        <Metric
+          label="Target tercapai"
+          value={String(dashboardData?.metrics.achievedTargets ?? 0)}
+          tone="amber"
+        />
+        <Metric
+          label="Alert penting"
+          value={String(dashboardData?.metrics.alertCount ?? 0)}
+          tone="coral"
+        />
       </div>
       <div className="dashboard-grid">
         <Panel className="wide-panel">
@@ -1502,13 +1661,13 @@ function Dashboard({
               <h2>Progress komunikasi</h2>
               <p>Grafik mingguan berdasarkan catatan teks, foto, dan suara.</p>
             </div>
-            <span className="trend-up">+18%</span>
+            <span className="trend-up">{dashboardData?.trend.label ?? "Stabil"}</span>
           </div>
           <div className="chart-modern">
-            {[38, 62, 46, 74, 58, 86, 72].map((height, index) => (
-              <div key={index} className="bar-column">
-                <span style={{ height: `${height}%` }} />
-                <small>{["S", "S", "R", "K", "J", "S", "M"][index]}</small>
+            {chart.map((point, index) => (
+              <div key={`${point.label}-${index}`} className="bar-column">
+                <span style={{ height: `${getChartBarHeight(point.value, maxChartValue)}%` }} />
+                <small>{point.label}</small>
               </div>
             ))}
           </div>
@@ -1518,10 +1677,7 @@ function Dashboard({
             <h2>AI insight</h2>
             <Sparkles size={22} />
           </div>
-          <p className="insight-text">
-            Kontak mata lebih konsisten setelah sensory play sore. Coba jadwalkan
-            aktivitas sensorik 10 menit sebelum latihan komunikasi.
-          </p>
+          <p className="insight-text">{latestInsight}</p>
           <button className="text-button" onClick={() => go("roadmap")}>
             Lihat dampak ke roadmap <ChevronRight size={18} />
           </button>
@@ -1531,7 +1687,17 @@ function Dashboard({
           <div className="activity-list">
             {activities.map((activity) => (
               <div className="activity-row" key={activity.title}>
-                <span>{activity.icon}</span>
+                <span>
+                  {activity.area === "Perilaku" ? (
+                    <TimerReset size={20} />
+                  ) : activity.area === "Komunikasi" ? (
+                    <Activity size={20} />
+                  ) : activity.area === "Motorik" ? (
+                    <LineChart size={20} />
+                  ) : (
+                    <Utensils size={20} />
+                  )}
+                </span>
                 <div>
                   <strong>{activity.title}</strong>
                   <p>{activity.body}</p>
@@ -1550,14 +1716,32 @@ function Dashboard({
               Buka roadmap
             </button>
           </div>
-          <RoadmapStrip />
+          <RoadmapStrip items={roadmapPreview} />
         </Panel>
       </div>
     </>
   );
 }
 
-function Roadmap() {
+function Roadmap({
+  items,
+  latestInsight,
+}: {
+  items: RoadmapItemApiModel[];
+  latestInsight: InsightApiModel | null;
+}) {
+  const roadmap = items.length ? items : defaultRoadmap;
+  const evidenceLines = items.length
+    ? [
+        ...items.flatMap((item) => item.evidence),
+        ...(latestInsight?.alerts ?? []),
+      ].slice(0, 3)
+    : [
+        "6 catatan mendukung kontak mata",
+        "2 foto menunjukkan sensory play",
+        "1 pola transisi perlu perhatian",
+      ];
+
   return (
     <>
       <WorkspaceHeader
@@ -1571,7 +1755,7 @@ function Roadmap() {
               <span className={cx("timeline-dot", item.tone)} />
               {index < roadmap.length - 1 && <span className="timeline-line" />}
               <div>
-                <small>{item.status}</small>
+                <small>{"statusLabel" in item ? item.statusLabel : item.status}</small>
                 <h3>{item.title}</h3>
                 <p>{item.detail}</p>
               </div>
@@ -1586,9 +1770,9 @@ function Roadmap() {
             seberapa kuat pola yang ditemukan.
           </p>
           <div className="evidence-list">
-            <span>6 catatan mendukung kontak mata</span>
-            <span>2 foto menunjukkan sensory play</span>
-            <span>1 pola transisi perlu perhatian</span>
+            {evidenceLines.map((line) => (
+              <span key={line}>{line}</span>
+            ))}
           </div>
         </Panel>
       </div>
@@ -2010,14 +2194,25 @@ function Metric({
   );
 }
 
-function RoadmapStrip() {
+function RoadmapStrip({
+  items,
+}: {
+  items: Array<
+    | {
+        title: string;
+        status: string;
+        tone: string;
+      }
+    | RoadmapItemApiModel
+  >;
+}) {
   return (
     <div className="roadmap-strip">
-      {roadmap.map((item) => (
+      {items.map((item) => (
         <article key={item.title} className={cx("strip-item", item.tone)}>
           <span />
           <strong>{item.title}</strong>
-          <small>{item.status}</small>
+          <small>{"statusLabel" in item ? item.statusLabel : item.status}</small>
         </article>
       ))}
     </div>

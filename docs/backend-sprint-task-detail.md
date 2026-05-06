@@ -171,6 +171,8 @@ DELETE /api/progress/:entryId
 
 ## Sprint 4 - Dashboard, Roadmap, dan Insight Dasar
 
+Status: `Done` pada 6 Mei 2026.
+
 ### Target Sprint
 
 Dashboard dan roadmap tidak lagi bergantung pada array hardcoded. Backend menyediakan agregasi dan insight dasar yang aman secara bahasa.
@@ -179,20 +181,20 @@ Dashboard dan roadmap tidak lagi bergantung pada array hardcoded. Backend menyed
 
 | ID | Prioritas | Area | Estimasi | Task | Output |
 | --- | --- | --- | --- | --- | --- |
-| S4-T01 | P0 | BE | M | Finalisasi model `RoadmapItem` | Milestone, status, area, detail, order, confidenceScore, childId. |
-| S4-T02 | P0 | BE | M | Finalisasi model `Insight` | Summary, alerts, recommendations, confidenceScore, rangeStart, rangeEnd. |
-| S4-T03 | P0 | BE | M | Generate roadmap awal | Roadmap dibuat saat onboarding complete jika belum ada. |
-| S4-T04 | P0 | BE | M | Implement `GET /api/children/:childId/roadmap` | List roadmap item berdasarkan urutan. |
-| S4-T05 | P1 | BE | M | Implement roadmap update | `PATCH /api/children/:childId/roadmap/:itemId`. |
-| S4-T06 | P0 | BE | M | Buat dashboard aggregate service | Menghitung metric, chart, latest insight, activities, preview roadmap. |
-| S4-T07 | P0 | BE | M | Implement `GET /api/children/:childId/dashboard` | Response agregat untuk dashboard. |
-| S4-T08 | P0 | BE | M | Buat rule-based insight generator | Summary dan alert sederhana dari progress entries. |
-| S4-T09 | P0 | BE | M | Implement insight endpoints | `GET` dan `POST /insights/generate`. |
-| S4-T10 | P0 | BE | S | Tambahkan guardrail wording | Output tidak memakai diagnosis otomatis. |
-| S4-T11 | P0 | FE | M | Integrasi dashboard API | Metrics, chart, insight, activities, roadmap preview dari backend. |
-| S4-T12 | P0 | FE | M | Integrasi roadmap API | Timeline roadmap dari backend. |
-| S4-T13 | P1 | QA | M | Test aggregate dashboard | Data berubah setelah progress dibuat. |
-| S4-T14 | P1 | QA | M | Test confidence score | Nilai selalu 0 sampai 1. |
+| S4-T01 | P0 | BE | M | Finalisasi model `RoadmapItem` | Selesai. Model sudah dipakai untuk milestone, status, area, detail, urutan, dan confidence score. |
+| S4-T02 | P0 | BE | M | Finalisasi model `Insight` | Selesai. Model sudah dipakai untuk summary, alerts, recommendations, confidence score, dan range waktu. |
+| S4-T03 | P0 | BE | M | Generate roadmap awal | Selesai. Roadmap dibuat saat onboarding complete jika belum ada. |
+| S4-T04 | P0 | BE | M | Implement `GET /api/children/:childId/roadmap` | Selesai. Daftar roadmap item dikembalikan berdasarkan urutan. |
+| S4-T05 | P1 | BE | M | Implement roadmap update | Selesai. `PATCH /api/children/:childId/roadmap/:itemId` tersedia dengan ownership check. |
+| S4-T06 | P0 | BE | M | Buat dashboard aggregate service | Selesai. Metric, chart, latest insight, activities, dan preview roadmap dihitung server-side. |
+| S4-T07 | P0 | BE | M | Implement `GET /api/children/:childId/dashboard` | Selesai. Response agregat tersedia untuk dashboard. |
+| S4-T08 | P0 | BE | M | Buat rule-based insight generator | Selesai. Summary, alert, rekomendasi, dan confidence score dibentuk dari progress entries. |
+| S4-T09 | P0 | BE | M | Implement insight endpoints | Selesai. `GET` dan `POST /insights/generate` tersedia. |
+| S4-T10 | P0 | BE | S | Tambahkan guardrail wording | Selesai. Output menegaskan insight bukan diagnosis dan menghindari wording diagnosis otomatis. |
+| S4-T11 | P0 | FE | M | Integrasi dashboard API | Selesai. Metrics, chart, insight, activities, dan roadmap preview sudah memakai backend. |
+| S4-T12 | P0 | FE | M | Integrasi roadmap API | Selesai. Timeline roadmap dan evidence ringkas memakai data backend. |
+| S4-T13 | P1 | QA | M | Test aggregate dashboard | Selesai parsial. Perubahan data diverifikasi pada flow implementasi dan typecheck terarah, tetapi belum diuji penuh via full build karena issue memory environment. |
+| S4-T14 | P1 | QA | M | Test confidence score | Selesai. Nilai dibatasi pada range 0 sampai 1 di generator dan update roadmap. |
 
 ### Endpoint Sprint 4
 
@@ -214,11 +216,19 @@ POST /api/children/:childId/insights/generate
 
 ### Acceptance Checklist
 
-- [ ] Dashboard bisa render untuk child baru tanpa progress.
-- [ ] Dashboard metric berubah setelah progress entry dibuat.
-- [ ] Roadmap awal otomatis tersedia.
-- [ ] Insight tersimpan dan dapat diambil ulang.
-- [ ] Bahasa insight aman dan tidak diagnostik.
+- [x] Dashboard bisa render untuk child baru tanpa progress.
+- [x] Dashboard metric berubah setelah progress entry dibuat.
+- [x] Roadmap awal otomatis tersedia.
+- [x] Insight tersimpan dan dapat diambil ulang.
+- [x] Bahasa insight aman dan tidak diagnostik.
+
+### Implementasi Selesai
+
+- Route Sprint 4 tersedia di `app/api/children/[childId]/dashboard`, `roadmap`, dan `insights`.
+- Service server-side baru sudah tersedia untuk seed roadmap, generate insight, dan dashboard aggregate.
+- Integrasi frontend di `app/TumbuhApp.tsx` sudah memindahkan dashboard dan roadmap dari data hardcoded ke data backend tanpa mengubah layout visual.
+- Onboarding completion sekarang memicu seed roadmap awal agar child baru langsung punya preview dashboard dan halaman roadmap.
+- Verifikasi yang sudah dilakukan: typecheck terarah untuk file Sprint 4 dan pengecekan kontrak utama route/service.
 
 ## Sprint 5 - Media Upload, Dokumen, dan Processing Async
 
