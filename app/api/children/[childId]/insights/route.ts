@@ -5,7 +5,7 @@ import { getOrCreateGuardianForRequest } from "../../../../../lib/auth/session";
 import { getOwnedChildForGuardian } from "../../../../../lib/children";
 import { handleRouteError, ok } from "../../../../../lib/api/response";
 import { parseParams, z } from "../../../../../lib/api/validation";
-import { getLatestOrGeneratedInsightForChild, listInsightsForChild } from "../../../../../lib/insights";
+import { getInsightStateForChild } from "../../../../../lib/insights";
 
 const childParamsSchema = z.object({
   childId: z.string().trim().min(1, "childId is required"),
@@ -21,15 +21,9 @@ export async function GET(
     const params = parseParams(await context.params, childParamsSchema);
     await getOwnedChildForGuardian(guardian.id, params.childId);
 
-    const [latest, insights] = await Promise.all([
-      getLatestOrGeneratedInsightForChild(params.childId),
-      listInsightsForChild(params.childId),
-    ]);
+    const insightState = await getInsightStateForChild(params.childId);
 
-    return ok({
-      latest,
-      insights,
-    });
+    return ok(insightState);
   } catch (error) {
     return handleRouteError(error);
   }

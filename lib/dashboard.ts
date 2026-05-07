@@ -3,7 +3,7 @@ import { RoadmapStatus } from "../generated/prisma/enums";
 import { mapFocusAreasToLabel } from "./children";
 import type { SerializedRoadmapItem } from "./roadmap";
 import { prisma } from "./prisma";
-import { getLatestOrGeneratedInsightForChild } from "./insights";
+import { getLatestInsightForChild } from "./insights";
 import { ensureInitialRoadmapForChild } from "./roadmap";
 
 export type DashboardMetricSummary = {
@@ -31,7 +31,7 @@ export type DashboardResponse = {
     direction: "up" | "flat";
     label: string;
   };
-  latestInsight: Awaited<ReturnType<typeof getLatestOrGeneratedInsightForChild>>;
+  latestInsight: Awaited<ReturnType<typeof getLatestInsightForChild>>;
   activities: DashboardActivity[];
   roadmapPreview: SerializedRoadmapItem[];
 };
@@ -67,7 +67,7 @@ export async function buildDashboardForChild(childId: string): Promise<Dashboard
   });
 
   const [latestInsight, roadmapItems, weekEntries, previousWeekCount] = await Promise.all([
-    getLatestOrGeneratedInsightForChild(childId),
+    getLatestInsightForChild(childId),
     ensureInitialRoadmapForChild({
       childId,
       focusAreas: mapFocusAreasToLabel(child.focusAreas),
@@ -117,10 +117,10 @@ export async function buildDashboardForChild(childId: string): Promise<Dashboard
   const activeRoadmapCount = roadmapItems.filter(
     (item) => item.status === RoadmapStatus.IN_PROGRESS || item.status === RoadmapStatus.ACHIEVED,
   ).length;
-  const alertCount = latestInsight.alerts.length;
+  const alertCount = latestInsight?.alerts.length ?? 0;
   const delta = notesThisWeek - previousWeekCount;
 
-  const recommendations = latestInsight.recommendations.slice(0, 3);
+  const recommendations = latestInsight?.recommendations.slice(0, 3) ?? [];
   const activities: DashboardActivity[] = recommendations.map((body, index) => ({
     title:
       index === 0

@@ -1,12 +1,11 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { NextRequest } from "next/server";
 
-import { createAuditLog } from "../../../../../../lib/audit";
 import { getOrCreateGuardianForRequest } from "../../../../../../lib/auth/session";
 import { getOwnedChildForGuardian } from "../../../../../../lib/children";
-import { generateInsightForChild } from "../../../../../../lib/insights";
 import { handleRouteError, ok } from "../../../../../../lib/api/response";
 import { parseParams, z } from "../../../../../../lib/api/validation";
+import { personalizeRoadmapForChild } from "../../../../../../lib/roadmap-personalization";
 
 const childParamsSchema = z.object({
   childId: z.string().trim().min(1, "childId is required"),
@@ -22,24 +21,13 @@ export async function POST(
     const params = parseParams(await context.params, childParamsSchema);
     await getOwnedChildForGuardian(guardian.id, params.childId);
 
-    const insight = await generateInsightForChild(params.childId);
-
-    await createAuditLog({
-      guardianId: guardian.id,
+    const result = await personalizeRoadmapForChild({
       childId: params.childId,
-      action: "insight.generated",
-      metadata: {
-        insightId: insight.id,
-        kind: insight.kind,
-        status: insight.status,
-        version: insight.version,
-        confidenceScore: insight.confidenceScore,
-        sourceDataHash: insight.sourceDataHash,
-      },
-      request,
+      guardianId: guardian.id,
+      trigger: "manual",
     });
 
-    return ok({ insight });
+    return ok(result);
   } catch (error) {
     return handleRouteError(error);
   }

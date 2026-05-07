@@ -5,7 +5,8 @@ import { getOwnedChildForGuardian, mapFocusAreasToLabel } from "../../../../../l
 import { getOrCreateGuardianForRequest } from "../../../../../lib/auth/session";
 import { handleRouteError, ok } from "../../../../../lib/api/response";
 import { parseParams, z } from "../../../../../lib/api/validation";
-import { ensureInitialRoadmapForChild, listRoadmapItemsForChild } from "../../../../../lib/roadmap";
+import { getLatestInsightForChild } from "../../../../../lib/insights";
+import { buildRoadmapMeta, ensureInitialRoadmapForChild } from "../../../../../lib/roadmap";
 
 const childParamsSchema = z.object({
   childId: z.string().trim().min(1, "childId is required"),
@@ -29,7 +30,12 @@ export async function GET(
             focusAreas: mapFocusAreasToLabel(child.focusAreas),
           });
 
-    return ok({ items });
+    const latestInsight = await getLatestInsightForChild(child.id);
+
+    return ok({
+      items,
+      meta: buildRoadmapMeta(items, latestInsight?.id ?? null),
+    });
   } catch (error) {
     return handleRouteError(error);
   }

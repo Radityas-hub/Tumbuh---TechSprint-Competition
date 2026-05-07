@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
-import { getMediaFileResponsePayload } from "../../../../../lib/media";
+import { getOwnedMediaFileResponsePayload } from "../../../../../lib/media";
 import { handleRouteError } from "../../../../../lib/api/response";
 import { getOrCreateGuardianForRequest } from "../../../../../lib/auth/session";
 
@@ -11,9 +11,9 @@ export async function GET(
 ) {
   try {
     noStore();
-    await getOrCreateGuardianForRequest(request);
+    const guardian = await getOrCreateGuardianForRequest(request);
     const params = await context.params;
-    const file = await getMediaFileResponsePayload(params.mediaId);
+    const file = await getOwnedMediaFileResponsePayload(guardian.id, params.mediaId);
 
     return new NextResponse(file.body, {
       headers: {

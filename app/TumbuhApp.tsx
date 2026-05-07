@@ -171,6 +171,10 @@ type RoadmapItemApiModel = {
   confidenceScore: number;
   sortOrder: number;
   achievedAt: string | null;
+  lastPersonalizedAt: string | null;
+  personalizationSource: string | null;
+  sourceInsightId: string | null;
+  personalizationReason: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -187,6 +191,14 @@ type InsightApiModel = {
   rangeStart: string | null;
   rangeEnd: string | null;
   generatedBy: string | null;
+  sourceDataHash: string | null;
+  status: string;
+  version: number;
+  modelName: string | null;
+  promptVersion: string | null;
+  isActive: boolean;
+  staleAt: string | null;
+  generatedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -206,7 +218,7 @@ type DashboardData = {
     direction: "up" | "flat";
     label: string;
   };
-  latestInsight: InsightApiModel;
+  latestInsight: InsightApiModel | null;
   activities: Array<{
     title: string;
     body: string;
@@ -217,6 +229,12 @@ type DashboardData = {
 
 type RoadmapResponse = {
   items: RoadmapItemApiModel[];
+  meta: {
+    personalizedAt: string | null;
+    personalizationSource: string | null;
+    sourceInsightId: string | null;
+    isDerivedFromLatestInsight: boolean;
+  };
 };
 
 type ArticleApiModel = {
@@ -312,58 +330,6 @@ const navItems: { id: Screen; label: string; icon: ReactNode }[] = [
   { id: "handoff", label: "Backend", icon: <FileText size={18} /> },
 ];
 
-const defaultRoadmap = [
-  {
-    title: "Kontak mata 5 detik",
-    status: "Tercapai",
-    detail:
-      "Tercatat konsisten pada 6 catatan terakhir ketika instruksi pendek.",
-    tone: "green",
-  },
-  {
-    title: "Meminta bantuan",
-    status: "Berproses",
-    detail:
-      "Muncul 4 kali minggu ini, masih membutuhkan prompt visual.",
-    tone: "amber",
-  },
-  {
-    title: "Kalimat dua kata",
-    status: "Target berikutnya",
-    detail:
-      "Latihan dengan benda konkret: mau minum, mau main, mau roti.",
-    tone: "blue",
-  },
-  {
-    title: "Transisi tanpa tantrum",
-    status: "Perlu perhatian",
-    detail:
-      "Pemicu dominan: berhenti screen time secara mendadak sebelum mandi.",
-    tone: "coral",
-  },
-];
-
-const defaultActivities = [
-  {
-    icon: <TimerReset size={20} />,
-    title: "Timer visual sebelum transisi",
-    body: "Pasang timer 5 menit sebelum berhenti screen time, lalu beri pilihan aktivitas berikutnya.",
-    area: "Perilaku",
-  },
-  {
-    icon: <Activity size={20} />,
-    title: "Latihan meminta bantuan",
-    body: "Siapkan dua kartu visual: minum dan main. Tunggu 5 detik sebelum memberi prompt.",
-    area: "Komunikasi",
-  },
-  {
-    icon: <Utensils size={20} />,
-    title: "Snack tinggi omega-3",
-    body: "Gunakan menu sederhana seperti telur, ikan, atau chia pudding bila sesuai dengan arahan dokter.",
-    area: "Rutinitas",
-  },
-];
-
 const articles = [
   {
     title: "Cara membaca milestone tanpa panik",
@@ -438,6 +404,16 @@ function mapArticleToUi(article: ArticleApiModel) {
     slug: article.slug,
   };
 }
+
+const emptyDashboardChart = [
+  { label: "S", value: 0 },
+  { label: "S", value: 0 },
+  { label: "R", value: 0 },
+  { label: "K", value: 0 },
+  { label: "J", value: 0 },
+  { label: "S", value: 0 },
+  { label: "M", value: 0 },
+];
 
 function getDevelopmentAuthHeaders() {
   if (process.env.NODE_ENV === "production") {
@@ -597,6 +573,7 @@ export default function TumbuhApp({
   const [activeChild, setActiveChild] = useState<ChildApiModel | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [roadmapItems, setRoadmapItems] = useState<RoadmapItemApiModel[]>([]);
+  const [roadmapMeta, setRoadmapMeta] = useState<RoadmapResponse["meta"] | null>(null);
   const [authState, setAuthState] = useState<"loading" | "ready" | "unauthenticated" | "error">("loading");
 
   const go = (target: Screen, options?: { replace?: boolean }) => {
@@ -631,6 +608,7 @@ export default function TumbuhApp({
         setTimelineEntries([]);
         setDashboardData(null);
         setRoadmapItems([]);
+        setRoadmapMeta(null);
         setAuthState("unauthenticated");
         return null;
       }
@@ -644,6 +622,7 @@ export default function TumbuhApp({
       setTimelineEntries([]);
       setDashboardData(null);
       setRoadmapItems([]);
+      setRoadmapMeta(null);
       setAuthState("error");
       return null;
     }
@@ -693,6 +672,7 @@ export default function TumbuhApp({
     if (!childId) {
       setDashboardData(null);
       setRoadmapItems([]);
+      setRoadmapMeta(null);
       return;
     }
 
@@ -704,10 +684,12 @@ export default function TumbuhApp({
 
       setDashboardData(dashboard);
       setRoadmapItems(roadmap.items);
+      setRoadmapMeta(roadmap.meta);
     } catch (error) {
       console.error("Failed to load dashboard data", error);
       setDashboardData(null);
       setRoadmapItems([]);
+      setRoadmapMeta(null);
     }
   }
 
@@ -1166,6 +1148,7 @@ export default function TumbuhApp({
             <Roadmap
               items={roadmapItems}
               latestInsight={dashboardData?.latestInsight ?? null}
+              roadmapMeta={roadmapMeta}
             />
           )}
           {screen === "progress" && (
@@ -1788,25 +1771,24 @@ function Dashboard({
   guardianName: string;
   dashboardData: DashboardData | null;
 }) {
-  const chart = dashboardData?.chart.length
-    ? dashboardData.chart
-    : [
-        { label: "S", value: 1 },
-        { label: "S", value: 2 },
-        { label: "R", value: 1 },
-        { label: "K", value: 3 },
-        { label: "J", value: 2 },
-        { label: "S", value: 4 },
-        { label: "M", value: 3 },
-      ];
+  const chart = dashboardData?.chart.length ? dashboardData.chart : emptyDashboardChart;
   const maxChartValue = Math.max(...chart.map((item) => item.value), 0);
-  const activities = dashboardData?.activities.length ? dashboardData.activities : defaultActivities;
-  const roadmapPreview = dashboardData?.roadmapPreview.length
-    ? dashboardData.roadmapPreview
-    : defaultRoadmap;
+  const activities = dashboardData?.activities ?? [];
+  const roadmapPreview = dashboardData?.roadmapPreview ?? [];
   const latestInsight =
-    dashboardData?.latestInsight.summary ||
+    dashboardData?.latestInsight?.summary ||
     "Insight akan muncul setelah catatan rutin terkumpul. Ringkasan ini tetap bersifat pendamping dan bukan diagnosis.";
+  const latestInsightStatus = dashboardData?.latestInsight?.status ?? "EMPTY";
+  const latestInsightMeta =
+    latestInsightStatus === "PENDING"
+      ? "Insight sedang diperbarui dari catatan terbaru."
+      : latestInsightStatus === "STALE"
+        ? "Ada data baru. Insight terakhir masih ditampilkan sambil menunggu pembaruan."
+        : latestInsightStatus === "FAILED"
+          ? "Pembaruan insight terakhir gagal. Ringkasan sebelumnya tetap ditampilkan."
+          : dashboardData?.latestInsight?.generatedAt
+            ? `Insight terakhir diperbarui ${new Date(dashboardData.latestInsight.generatedAt).toLocaleString("id-ID")}.`
+            : "Insight akan tersimpan stabil setelah proses generasi selesai.";
 
   return (
     <>
@@ -1867,6 +1849,7 @@ function Dashboard({
             <Sparkles size={22} />
           </div>
           <p className="insight-text">{latestInsight}</p>
+          <small>{latestInsightMeta}</small>
           <button className="text-button" onClick={() => go("roadmap")}>
             Lihat dampak ke roadmap <ChevronRight size={18} />
           </button>
@@ -1874,6 +1857,14 @@ function Dashboard({
         <Panel>
           <h2>Aktivitas hari ini</h2>
           <div className="activity-list">
+            {activities.length === 0 && (
+              <div className="activity-row">
+                <div>
+                  <strong>Belum ada aktivitas rekomendasi</strong>
+                  <p>Tambahkan catatan perkembangan agar backend bisa menyusun rekomendasi aktivitas.</p>
+                </div>
+              </div>
+            )}
             {activities.map((activity) => (
               <div className="activity-row" key={activity.title}>
                 <span>
@@ -1905,7 +1896,11 @@ function Dashboard({
               Buka roadmap
             </button>
           </div>
-          <RoadmapStrip items={roadmapPreview} />
+          {roadmapPreview.length > 0 ? (
+            <RoadmapStrip items={roadmapPreview} />
+          ) : (
+            <p>Roadmap akan muncul setelah onboarding dan insight backend selesai diproses.</p>
+          )}
         </Panel>
       </div>
     </>
@@ -1915,21 +1910,19 @@ function Dashboard({
 function Roadmap({
   items,
   latestInsight,
+  roadmapMeta,
 }: {
   items: RoadmapItemApiModel[];
   latestInsight: InsightApiModel | null;
+  roadmapMeta: RoadmapResponse["meta"] | null;
 }) {
-  const roadmap = items.length ? items : defaultRoadmap;
+  const roadmap = items;
   const evidenceLines = items.length
     ? [
         ...items.flatMap((item) => item.evidence),
         ...(latestInsight?.alerts ?? []),
       ].slice(0, 3)
-    : [
-        "6 catatan mendukung kontak mata",
-        "2 foto menunjukkan sensory play",
-        "1 pola transisi perlu perhatian",
-      ];
+    : [];
 
   return (
     <>
@@ -1939,12 +1932,21 @@ function Roadmap({
       />
       <div className="roadmap-layout">
         <Panel className="timeline-panel">
+          {roadmap.length === 0 && (
+            <div className="timeline-item">
+              <div>
+                <small>Belum ada roadmap</small>
+                <h3>Roadmap masih kosong</h3>
+                <p>Selesaikan onboarding dan tambahkan catatan perkembangan agar backend bisa menyusun target awal.</p>
+              </div>
+            </div>
+          )}
           {roadmap.map((item, index) => (
             <div className="timeline-item" key={item.title}>
               <span className={cx("timeline-dot", item.tone)} />
               {index < roadmap.length - 1 && <span className="timeline-line" />}
               <div>
-                <small>{"statusLabel" in item ? item.statusLabel : item.status}</small>
+                <small>{item.statusLabel}</small>
                 <h3>{item.title}</h3>
                 <p>{item.detail}</p>
               </div>
@@ -1958,7 +1960,16 @@ function Roadmap({
             kejadian. Backend bisa mengirim `confidenceScore` agar UI menampilkan
             seberapa kuat pola yang ditemukan.
           </p>
+          {roadmapMeta?.personalizedAt ? (
+            <small>
+              Roadmap diperbarui {new Date(roadmapMeta.personalizedAt).toLocaleString("id-ID")}
+              {roadmapMeta.personalizationSource
+                ? ` melalui ${roadmapMeta.personalizationSource === "llm" ? "Qwen" : "rule backend"}`
+                : ""}.
+            </small>
+          ) : null}
           <div className="evidence-list">
+            {evidenceLines.length === 0 && <span>Evidence akan muncul setelah roadmap dan insight backend tersedia.</span>}
             {evidenceLines.map((line) => (
               <span key={line}>{line}</span>
             ))}
@@ -2153,11 +2164,11 @@ function Education({
   activeChildId: string | null;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [articleItems, setArticleItems] = useState(articles);
-  const [activeArticle, setActiveArticle] = useState(articles[0]);
+  const [articleItems, setArticleItems] = useState<typeof articles>([]);
+  const [activeArticle, setActiveArticle] = useState<(typeof articles)[number] | null>(null);
   const [question, setQuestion] = useState("");
   const [assistantReply, setAssistantReply] = useState(
-    "Coba gunakan timer visual 5 menit sebelum berhenti, lalu beri dua pilihan aktivitas berikutnya. Catat durasi tantrum selama satu minggu untuk melihat apakah pola membaik.",
+    "Tulis pertanyaan Anda. Assistant akan menjawab dari backend dengan guardrail yang aman.",
   );
   const [assistantConversationId, setAssistantConversationId] = useState<string | null>(null);
 
@@ -2248,6 +2259,13 @@ function Education({
             />
           </div>
           <div className="article-grid">
+            {articleItems.length === 0 && (
+              <article className="article-card">
+                <span>Belum ada hasil</span>
+                <h3>Artikel belum ditemukan</h3>
+                <p>Coba kata kunci lain atau tunggu backend memuat artikel edukasi.</p>
+              </article>
+            )}
             {articleItems.map((article) => (
               <article key={article.title} className="article-card">
                 <span>{article.category} • {article.readTime}</span>
@@ -2265,8 +2283,8 @@ function Education({
           <div className="article-summary">
             <BookOpen size={20} />
             <div>
-              <strong>{activeArticle.title}</strong>
-              <p>{activeArticle.body}</p>
+              <strong>{activeArticle?.title ?? "Pilih artikel"}</strong>
+              <p>{activeArticle?.body ?? "Ringkasan artikel dari backend akan tampil di sini."}</p>
             </div>
           </div>
         </Panel>
@@ -2349,47 +2367,19 @@ function Consultation({
     };
   }, [activeChildId]);
 
-  const consultCards =
-    recommendations.length > 0
-      ? recommendations.map((item) => ({
-          icon:
-            item.title === "Speech therapist" ? (
-              <Stethoscope size={24} />
-            ) : item.title === "Psikolog anak" ? (
-              <HeartHandshake size={24} />
-            ) : (
-              <MapPin size={24} />
-            ),
-          title: item.title,
-          reason: item.reason,
-          prepare: item.prepare,
-        }))
-      : [
-          {
-            icon: <Stethoscope size={24} />,
-            title: "Speech therapist",
-            reason:
-              "Komunikasi spontan mulai muncul, tetapi masih perlu prompt visual.",
-            prepare:
-              "Bawa ringkasan 2 minggu: kata yang muncul, situasi, dan respons setelah prompt.",
-          },
-          {
-            icon: <HeartHandshake size={24} />,
-            title: "Psikolog anak",
-            reason:
-              "Pola tantrum terlihat terkait transisi aktivitas dan perubahan rutinitas.",
-            prepare:
-              "Bawa catatan pemicu, durasi tantrum, dan strategi yang sudah dicoba.",
-          },
-          {
-            icon: <MapPin size={24} />,
-            title: "Fasilitas terdekat",
-            reason:
-              "Fitur lokasi dapat diaktifkan bila orang tua memberi izin eksplisit.",
-            prepare:
-              "Backend perlu consent lokasi dan filter jarak, spesialisasi, serta jam layanan.",
-          },
-        ];
+  const consultCards = recommendations.map((item) => ({
+    icon:
+      item.title === "Speech therapist" ? (
+        <Stethoscope size={24} />
+      ) : item.title === "Psikolog anak" ? (
+        <HeartHandshake size={24} />
+      ) : (
+        <MapPin size={24} />
+      ),
+    title: item.title,
+    reason: item.reason,
+    prepare: item.prepare,
+  }));
 
   return (
     <>
@@ -2398,6 +2388,12 @@ function Consultation({
         body={`Berdasarkan fokus ${profile.name}, backend menampilkan alasan konsultasi dan data yang perlu dibawa.${latestInsightSummary ? ` Insight terbaru: ${latestInsightSummary}` : ""}`}
       />
       <div className="consult-grid">
+        {consultCards.length === 0 && (
+          <Panel className="consult-card">
+            <h2>Belum ada rekomendasi</h2>
+            <p>Tambahkan progress dan insight agar backend bisa menyusun rekomendasi konsultasi yang lebih relevan.</p>
+          </Panel>
+        )}
         {consultCards.map((item) => (
           <Panel
             key={item.title}

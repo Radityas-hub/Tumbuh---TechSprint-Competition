@@ -28,10 +28,12 @@ export type AggregateInsight = {
 
 export type InsightAvgAggregateOutputType = {
   confidenceScore: number | null
+  version: number | null
 }
 
 export type InsightSumAggregateOutputType = {
   confidenceScore: number | null
+  version: number | null
 }
 
 export type InsightMinAggregateOutputType = {
@@ -44,6 +46,14 @@ export type InsightMinAggregateOutputType = {
   rangeStart: Date | null
   rangeEnd: Date | null
   generatedBy: string | null
+  sourceDataHash: string | null
+  status: string | null
+  version: number | null
+  modelName: string | null
+  promptVersion: string | null
+  isActive: boolean | null
+  staleAt: Date | null
+  generatedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -58,6 +68,14 @@ export type InsightMaxAggregateOutputType = {
   rangeStart: Date | null
   rangeEnd: Date | null
   generatedBy: string | null
+  sourceDataHash: string | null
+  status: string | null
+  version: number | null
+  modelName: string | null
+  promptVersion: string | null
+  isActive: boolean | null
+  staleAt: Date | null
+  generatedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -74,6 +92,16 @@ export type InsightCountAggregateOutputType = {
   rangeStart: number
   rangeEnd: number
   generatedBy: number
+  sourceDataHash: number
+  status: number
+  version: number
+  modelName: number
+  promptVersion: number
+  rawInput: number
+  rawOutput: number
+  isActive: number
+  staleAt: number
+  generatedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -82,10 +110,12 @@ export type InsightCountAggregateOutputType = {
 
 export type InsightAvgAggregateInputType = {
   confidenceScore?: true
+  version?: true
 }
 
 export type InsightSumAggregateInputType = {
   confidenceScore?: true
+  version?: true
 }
 
 export type InsightMinAggregateInputType = {
@@ -98,6 +128,14 @@ export type InsightMinAggregateInputType = {
   rangeStart?: true
   rangeEnd?: true
   generatedBy?: true
+  sourceDataHash?: true
+  status?: true
+  version?: true
+  modelName?: true
+  promptVersion?: true
+  isActive?: true
+  staleAt?: true
+  generatedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -112,6 +150,14 @@ export type InsightMaxAggregateInputType = {
   rangeStart?: true
   rangeEnd?: true
   generatedBy?: true
+  sourceDataHash?: true
+  status?: true
+  version?: true
+  modelName?: true
+  promptVersion?: true
+  isActive?: true
+  staleAt?: true
+  generatedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -128,6 +174,16 @@ export type InsightCountAggregateInputType = {
   rangeStart?: true
   rangeEnd?: true
   generatedBy?: true
+  sourceDataHash?: true
+  status?: true
+  version?: true
+  modelName?: true
+  promptVersion?: true
+  rawInput?: true
+  rawOutput?: true
+  isActive?: true
+  staleAt?: true
+  generatedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -231,6 +287,16 @@ export type InsightGroupByOutputType = {
   rangeStart: Date | null
   rangeEnd: Date | null
   generatedBy: string | null
+  sourceDataHash: string | null
+  status: string
+  version: number
+  modelName: string | null
+  promptVersion: string | null
+  rawInput: runtime.JsonValue | null
+  rawOutput: runtime.JsonValue | null
+  isActive: boolean
+  staleAt: Date | null
+  generatedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: InsightCountAggregateOutputType | null
@@ -270,6 +336,16 @@ export type InsightWhereInput = {
   rangeStart?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
   rangeEnd?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
   generatedBy?: Prisma.StringNullableFilter<"Insight"> | string | null
+  sourceDataHash?: Prisma.StringNullableFilter<"Insight"> | string | null
+  status?: Prisma.StringFilter<"Insight"> | string
+  version?: Prisma.IntFilter<"Insight"> | number
+  modelName?: Prisma.StringNullableFilter<"Insight"> | string | null
+  promptVersion?: Prisma.StringNullableFilter<"Insight"> | string | null
+  rawInput?: Prisma.JsonNullableFilter<"Insight">
+  rawOutput?: Prisma.JsonNullableFilter<"Insight">
+  isActive?: Prisma.BoolFilter<"Insight"> | boolean
+  staleAt?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
+  generatedAt?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Insight"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Insight"> | Date | string
   child?: Prisma.XOR<Prisma.ChildScalarRelationFilter, Prisma.ChildWhereInput>
@@ -288,6 +364,16 @@ export type InsightOrderByWithRelationInput = {
   rangeStart?: Prisma.SortOrderInput | Prisma.SortOrder
   rangeEnd?: Prisma.SortOrderInput | Prisma.SortOrder
   generatedBy?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceDataHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  version?: Prisma.SortOrder
+  modelName?: Prisma.SortOrderInput | Prisma.SortOrder
+  promptVersion?: Prisma.SortOrderInput | Prisma.SortOrder
+  rawInput?: Prisma.SortOrderInput | Prisma.SortOrder
+  rawOutput?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  staleAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  generatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   child?: Prisma.ChildOrderByWithRelationInput
@@ -309,6 +395,16 @@ export type InsightWhereUniqueInput = Prisma.AtLeast<{
   rangeStart?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
   rangeEnd?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
   generatedBy?: Prisma.StringNullableFilter<"Insight"> | string | null
+  sourceDataHash?: Prisma.StringNullableFilter<"Insight"> | string | null
+  status?: Prisma.StringFilter<"Insight"> | string
+  version?: Prisma.IntFilter<"Insight"> | number
+  modelName?: Prisma.StringNullableFilter<"Insight"> | string | null
+  promptVersion?: Prisma.StringNullableFilter<"Insight"> | string | null
+  rawInput?: Prisma.JsonNullableFilter<"Insight">
+  rawOutput?: Prisma.JsonNullableFilter<"Insight">
+  isActive?: Prisma.BoolFilter<"Insight"> | boolean
+  staleAt?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
+  generatedAt?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Insight"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Insight"> | Date | string
   child?: Prisma.XOR<Prisma.ChildScalarRelationFilter, Prisma.ChildWhereInput>
@@ -327,6 +423,16 @@ export type InsightOrderByWithAggregationInput = {
   rangeStart?: Prisma.SortOrderInput | Prisma.SortOrder
   rangeEnd?: Prisma.SortOrderInput | Prisma.SortOrder
   generatedBy?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceDataHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  version?: Prisma.SortOrder
+  modelName?: Prisma.SortOrderInput | Prisma.SortOrder
+  promptVersion?: Prisma.SortOrderInput | Prisma.SortOrder
+  rawInput?: Prisma.SortOrderInput | Prisma.SortOrder
+  rawOutput?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  staleAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  generatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.InsightCountOrderByAggregateInput
@@ -351,6 +457,16 @@ export type InsightScalarWhereWithAggregatesInput = {
   rangeStart?: Prisma.DateTimeNullableWithAggregatesFilter<"Insight"> | Date | string | null
   rangeEnd?: Prisma.DateTimeNullableWithAggregatesFilter<"Insight"> | Date | string | null
   generatedBy?: Prisma.StringNullableWithAggregatesFilter<"Insight"> | string | null
+  sourceDataHash?: Prisma.StringNullableWithAggregatesFilter<"Insight"> | string | null
+  status?: Prisma.StringWithAggregatesFilter<"Insight"> | string
+  version?: Prisma.IntWithAggregatesFilter<"Insight"> | number
+  modelName?: Prisma.StringNullableWithAggregatesFilter<"Insight"> | string | null
+  promptVersion?: Prisma.StringNullableWithAggregatesFilter<"Insight"> | string | null
+  rawInput?: Prisma.JsonNullableWithAggregatesFilter<"Insight">
+  rawOutput?: Prisma.JsonNullableWithAggregatesFilter<"Insight">
+  isActive?: Prisma.BoolWithAggregatesFilter<"Insight"> | boolean
+  staleAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Insight"> | Date | string | null
+  generatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Insight"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Insight"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Insight"> | Date | string
 }
@@ -365,6 +481,16 @@ export type InsightCreateInput = {
   rangeStart?: Date | string | null
   rangeEnd?: Date | string | null
   generatedBy?: string | null
+  sourceDataHash?: string | null
+  status?: string
+  version?: number
+  modelName?: string | null
+  promptVersion?: string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: boolean
+  staleAt?: Date | string | null
+  generatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   child: Prisma.ChildCreateNestedOneWithoutInsightsInput
@@ -383,6 +509,16 @@ export type InsightUncheckedCreateInput = {
   rangeStart?: Date | string | null
   rangeEnd?: Date | string | null
   generatedBy?: string | null
+  sourceDataHash?: string | null
+  status?: string
+  version?: number
+  modelName?: string | null
+  promptVersion?: string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: boolean
+  staleAt?: Date | string | null
+  generatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -397,6 +533,16 @@ export type InsightUpdateInput = {
   rangeStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rangeEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   generatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDataHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  modelName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staleAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  generatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   child?: Prisma.ChildUpdateOneRequiredWithoutInsightsNestedInput
@@ -415,6 +561,16 @@ export type InsightUncheckedUpdateInput = {
   rangeStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rangeEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   generatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDataHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  modelName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staleAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  generatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -431,6 +587,16 @@ export type InsightCreateManyInput = {
   rangeStart?: Date | string | null
   rangeEnd?: Date | string | null
   generatedBy?: string | null
+  sourceDataHash?: string | null
+  status?: string
+  version?: number
+  modelName?: string | null
+  promptVersion?: string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: boolean
+  staleAt?: Date | string | null
+  generatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -445,6 +611,16 @@ export type InsightUpdateManyMutationInput = {
   rangeStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rangeEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   generatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDataHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  modelName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staleAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  generatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -461,6 +637,16 @@ export type InsightUncheckedUpdateManyInput = {
   rangeStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rangeEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   generatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDataHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  modelName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staleAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  generatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -487,12 +673,23 @@ export type InsightCountOrderByAggregateInput = {
   rangeStart?: Prisma.SortOrder
   rangeEnd?: Prisma.SortOrder
   generatedBy?: Prisma.SortOrder
+  sourceDataHash?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  version?: Prisma.SortOrder
+  modelName?: Prisma.SortOrder
+  promptVersion?: Prisma.SortOrder
+  rawInput?: Prisma.SortOrder
+  rawOutput?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  staleAt?: Prisma.SortOrder
+  generatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type InsightAvgOrderByAggregateInput = {
   confidenceScore?: Prisma.SortOrder
+  version?: Prisma.SortOrder
 }
 
 export type InsightMaxOrderByAggregateInput = {
@@ -505,6 +702,14 @@ export type InsightMaxOrderByAggregateInput = {
   rangeStart?: Prisma.SortOrder
   rangeEnd?: Prisma.SortOrder
   generatedBy?: Prisma.SortOrder
+  sourceDataHash?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  version?: Prisma.SortOrder
+  modelName?: Prisma.SortOrder
+  promptVersion?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  staleAt?: Prisma.SortOrder
+  generatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -519,12 +724,21 @@ export type InsightMinOrderByAggregateInput = {
   rangeStart?: Prisma.SortOrder
   rangeEnd?: Prisma.SortOrder
   generatedBy?: Prisma.SortOrder
+  sourceDataHash?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  version?: Prisma.SortOrder
+  modelName?: Prisma.SortOrder
+  promptVersion?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
+  staleAt?: Prisma.SortOrder
+  generatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type InsightSumOrderByAggregateInput = {
   confidenceScore?: Prisma.SortOrder
+  version?: Prisma.SortOrder
 }
 
 export type InsightCreateNestedManyWithoutChildInput = {
@@ -625,6 +839,16 @@ export type InsightCreateWithoutChildInput = {
   rangeStart?: Date | string | null
   rangeEnd?: Date | string | null
   generatedBy?: string | null
+  sourceDataHash?: string | null
+  status?: string
+  version?: number
+  modelName?: string | null
+  promptVersion?: string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: boolean
+  staleAt?: Date | string | null
+  generatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   progressEntry?: Prisma.ProgressEntryCreateNestedOneWithoutInsightsInput
@@ -641,6 +865,16 @@ export type InsightUncheckedCreateWithoutChildInput = {
   rangeStart?: Date | string | null
   rangeEnd?: Date | string | null
   generatedBy?: string | null
+  sourceDataHash?: string | null
+  status?: string
+  version?: number
+  modelName?: string | null
+  promptVersion?: string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: boolean
+  staleAt?: Date | string | null
+  generatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -686,6 +920,16 @@ export type InsightScalarWhereInput = {
   rangeStart?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
   rangeEnd?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
   generatedBy?: Prisma.StringNullableFilter<"Insight"> | string | null
+  sourceDataHash?: Prisma.StringNullableFilter<"Insight"> | string | null
+  status?: Prisma.StringFilter<"Insight"> | string
+  version?: Prisma.IntFilter<"Insight"> | number
+  modelName?: Prisma.StringNullableFilter<"Insight"> | string | null
+  promptVersion?: Prisma.StringNullableFilter<"Insight"> | string | null
+  rawInput?: Prisma.JsonNullableFilter<"Insight">
+  rawOutput?: Prisma.JsonNullableFilter<"Insight">
+  isActive?: Prisma.BoolFilter<"Insight"> | boolean
+  staleAt?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
+  generatedAt?: Prisma.DateTimeNullableFilter<"Insight"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Insight"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Insight"> | Date | string
 }
@@ -700,6 +944,16 @@ export type InsightCreateWithoutProgressEntryInput = {
   rangeStart?: Date | string | null
   rangeEnd?: Date | string | null
   generatedBy?: string | null
+  sourceDataHash?: string | null
+  status?: string
+  version?: number
+  modelName?: string | null
+  promptVersion?: string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: boolean
+  staleAt?: Date | string | null
+  generatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   child: Prisma.ChildCreateNestedOneWithoutInsightsInput
@@ -716,6 +970,16 @@ export type InsightUncheckedCreateWithoutProgressEntryInput = {
   rangeStart?: Date | string | null
   rangeEnd?: Date | string | null
   generatedBy?: string | null
+  sourceDataHash?: string | null
+  status?: string
+  version?: number
+  modelName?: string | null
+  promptVersion?: string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: boolean
+  staleAt?: Date | string | null
+  generatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -757,6 +1021,16 @@ export type InsightCreateManyChildInput = {
   rangeStart?: Date | string | null
   rangeEnd?: Date | string | null
   generatedBy?: string | null
+  sourceDataHash?: string | null
+  status?: string
+  version?: number
+  modelName?: string | null
+  promptVersion?: string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: boolean
+  staleAt?: Date | string | null
+  generatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -771,6 +1045,16 @@ export type InsightUpdateWithoutChildInput = {
   rangeStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rangeEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   generatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDataHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  modelName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staleAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  generatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progressEntry?: Prisma.ProgressEntryUpdateOneWithoutInsightsNestedInput
@@ -787,6 +1071,16 @@ export type InsightUncheckedUpdateWithoutChildInput = {
   rangeStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rangeEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   generatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDataHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  modelName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staleAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  generatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -802,6 +1096,16 @@ export type InsightUncheckedUpdateManyWithoutChildInput = {
   rangeStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rangeEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   generatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDataHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  modelName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staleAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  generatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -817,6 +1121,16 @@ export type InsightCreateManyProgressEntryInput = {
   rangeStart?: Date | string | null
   rangeEnd?: Date | string | null
   generatedBy?: string | null
+  sourceDataHash?: string | null
+  status?: string
+  version?: number
+  modelName?: string | null
+  promptVersion?: string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: boolean
+  staleAt?: Date | string | null
+  generatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -831,6 +1145,16 @@ export type InsightUpdateWithoutProgressEntryInput = {
   rangeStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rangeEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   generatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDataHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  modelName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staleAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  generatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   child?: Prisma.ChildUpdateOneRequiredWithoutInsightsNestedInput
@@ -847,6 +1171,16 @@ export type InsightUncheckedUpdateWithoutProgressEntryInput = {
   rangeStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rangeEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   generatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDataHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  modelName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staleAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  generatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -862,6 +1196,16 @@ export type InsightUncheckedUpdateManyWithoutProgressEntryInput = {
   rangeStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rangeEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   generatedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDataHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  modelName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  promptVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawInput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  rawOutput?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  staleAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  generatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -880,6 +1224,16 @@ export type InsightSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   rangeStart?: boolean
   rangeEnd?: boolean
   generatedBy?: boolean
+  sourceDataHash?: boolean
+  status?: boolean
+  version?: boolean
+  modelName?: boolean
+  promptVersion?: boolean
+  rawInput?: boolean
+  rawOutput?: boolean
+  isActive?: boolean
+  staleAt?: boolean
+  generatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   child?: boolean | Prisma.ChildDefaultArgs<ExtArgs>
@@ -898,6 +1252,16 @@ export type InsightSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   rangeStart?: boolean
   rangeEnd?: boolean
   generatedBy?: boolean
+  sourceDataHash?: boolean
+  status?: boolean
+  version?: boolean
+  modelName?: boolean
+  promptVersion?: boolean
+  rawInput?: boolean
+  rawOutput?: boolean
+  isActive?: boolean
+  staleAt?: boolean
+  generatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   child?: boolean | Prisma.ChildDefaultArgs<ExtArgs>
@@ -916,6 +1280,16 @@ export type InsightSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   rangeStart?: boolean
   rangeEnd?: boolean
   generatedBy?: boolean
+  sourceDataHash?: boolean
+  status?: boolean
+  version?: boolean
+  modelName?: boolean
+  promptVersion?: boolean
+  rawInput?: boolean
+  rawOutput?: boolean
+  isActive?: boolean
+  staleAt?: boolean
+  generatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   child?: boolean | Prisma.ChildDefaultArgs<ExtArgs>
@@ -934,11 +1308,21 @@ export type InsightSelectScalar = {
   rangeStart?: boolean
   rangeEnd?: boolean
   generatedBy?: boolean
+  sourceDataHash?: boolean
+  status?: boolean
+  version?: boolean
+  modelName?: boolean
+  promptVersion?: boolean
+  rawInput?: boolean
+  rawOutput?: boolean
+  isActive?: boolean
+  staleAt?: boolean
+  generatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type InsightOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "childId" | "progressEntryId" | "kind" | "summary" | "alerts" | "recommendations" | "confidenceScore" | "rangeStart" | "rangeEnd" | "generatedBy" | "createdAt" | "updatedAt", ExtArgs["result"]["insight"]>
+export type InsightOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "childId" | "progressEntryId" | "kind" | "summary" | "alerts" | "recommendations" | "confidenceScore" | "rangeStart" | "rangeEnd" | "generatedBy" | "sourceDataHash" | "status" | "version" | "modelName" | "promptVersion" | "rawInput" | "rawOutput" | "isActive" | "staleAt" | "generatedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["insight"]>
 export type InsightInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   child?: boolean | Prisma.ChildDefaultArgs<ExtArgs>
   progressEntry?: boolean | Prisma.Insight$progressEntryArgs<ExtArgs>
@@ -970,6 +1354,16 @@ export type $InsightPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     rangeStart: Date | null
     rangeEnd: Date | null
     generatedBy: string | null
+    sourceDataHash: string | null
+    status: string
+    version: number
+    modelName: string | null
+    promptVersion: string | null
+    rawInput: runtime.JsonValue | null
+    rawOutput: runtime.JsonValue | null
+    isActive: boolean
+    staleAt: Date | null
+    generatedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["insight"]>
@@ -1408,6 +1802,16 @@ export interface InsightFieldRefs {
   readonly rangeStart: Prisma.FieldRef<"Insight", 'DateTime'>
   readonly rangeEnd: Prisma.FieldRef<"Insight", 'DateTime'>
   readonly generatedBy: Prisma.FieldRef<"Insight", 'String'>
+  readonly sourceDataHash: Prisma.FieldRef<"Insight", 'String'>
+  readonly status: Prisma.FieldRef<"Insight", 'String'>
+  readonly version: Prisma.FieldRef<"Insight", 'Int'>
+  readonly modelName: Prisma.FieldRef<"Insight", 'String'>
+  readonly promptVersion: Prisma.FieldRef<"Insight", 'String'>
+  readonly rawInput: Prisma.FieldRef<"Insight", 'Json'>
+  readonly rawOutput: Prisma.FieldRef<"Insight", 'Json'>
+  readonly isActive: Prisma.FieldRef<"Insight", 'Boolean'>
+  readonly staleAt: Prisma.FieldRef<"Insight", 'DateTime'>
+  readonly generatedAt: Prisma.FieldRef<"Insight", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Insight", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Insight", 'DateTime'>
 }

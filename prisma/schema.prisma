@@ -182,6 +182,10 @@ model RoadmapItem {
   confidenceScore Float         @default(0) @map("confidence_score")
   sortOrder       Int           @default(0) @map("sort_order")
   achievedAt      DateTime?     @map("achieved_at")
+  lastPersonalizedAt DateTime?  @map("last_personalized_at")
+  personalizationSource String? @map("personalization_source")
+  sourceInsightId  String?      @map("source_insight_id")
+  personalizationReason String? @map("personalization_reason")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
@@ -204,6 +208,16 @@ model Insight {
   rangeStart      DateTime?   @map("range_start")
   rangeEnd        DateTime?   @map("range_end")
   generatedBy     String?     @map("generated_by")
+  sourceDataHash  String?     @map("source_data_hash")
+  status          String      @default("READY")
+  version         Int         @default(1)
+  modelName       String?     @map("model_name")
+  promptVersion   String?     @map("prompt_version")
+  rawInput        Json?       @map("raw_input")
+  rawOutput       Json?       @map("raw_output")
+  isActive        Boolean     @default(true) @map("is_active")
+  staleAt         DateTime?   @map("stale_at")
+  generatedAt     DateTime?   @map("generated_at")
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
 
@@ -211,6 +225,8 @@ model Insight {
   progressEntry ProgressEntry? @relation(fields: [progressEntryId], references: [id], onDelete: SetNull)
 
   @@index([childId, kind, createdAt])
+  @@index([childId, isActive, createdAt])
+  @@index([childId, sourceDataHash])
   @@index([progressEntryId])
   @@map("insights")
 }

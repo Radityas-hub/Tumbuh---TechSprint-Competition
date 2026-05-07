@@ -151,10 +151,9 @@ export async function getConsultationRecommendationsForChild(guardianId: string,
     prisma.insight.findFirst({
       where: {
         childId,
+        isActive: true,
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ version: "desc" }, { createdAt: "desc" }],
       select: {
         summary: true,
       },

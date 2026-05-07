@@ -1,9 +1,13 @@
+import { createHash } from "node:crypto";
+
 import type { Prisma } from "../generated/prisma/client";
 import { FocusArea, InsightKind, RoadmapStatus } from "../generated/prisma/enums";
 
 import { notFound } from "./api/errors";
+import { z } from "./api/validation";
 import { type FocusAreaLabel } from "./children";
 import { prisma } from "./prisma";
+import { personalizeRoadmapForChild } from "./roadmap-personalization";
 import { listRoadmapItemsForChild } from "./roadmap";
 
 const insightSelect = {
@@ -18,6 +22,16 @@ const insightSelect = {
   rangeStart: true,
   rangeEnd: true,
   generatedBy: true,
+  sourceDataHash: true,
+  status: true,
+  version: true,
+  modelName: true,
+  promptVersion: true,
+  rawInput: true,
+  rawOutput: true,
+  isActive: true,
+  staleAt: true,
+  generatedAt: true,
   createdAt: true,
   updatedAt: true,
 } satisfies Prisma.InsightSelect;
@@ -46,8 +60,23 @@ export type SerializedInsight = {
   rangeStart: string | null;
   rangeEnd: string | null;
   generatedBy: string | null;
+  sourceDataHash: string | null;
+  status: string;
+  version: number;
+  modelName: string | null;
+  promptVersion: string | null;
+  isActive: boolean;
+  staleAt: string | null;
+  generatedAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type InsightListState = {
+  latest: SerializedInsight | null;
+  insights: SerializedInsight[];
+  status: string;
+  isStale: boolean;
 };
 
 type GeneratedInsightDraft = {
@@ -57,6 +86,56 @@ type GeneratedInsightDraft = {
   confidenceScore: number;
   rangeStart: Date | null;
   rangeEnd: Date | null;
+};
+
+type InsightSnapshot = {
+  childId: string;
+  childName: string;
+  focusAreas: FocusAreaLabel[];
+  rangeStart: string;
+  rangeEnd: string;
+  previousRangeStart: string;
+  previousRangeEnd: string;
+  currentEntries: Array<{
+    area: FocusAreaLabel;
+    observedAt: string;
+  }>;
+  previousEntries: Array<{
+    area: FocusAreaLabel;
+  }>;
+  roadmapItems: Array<{
+    title: string;
+    status: keyof typeof RoadmapStatus;
+  }>;
+};
+
+type InsightBuildResult = {
+  childId: string;
+  snapshot: InsightSnapshot;
+  sourceDataHash: string;
+  draft: GeneratedInsightDraft;
+};
+
+const insightPromptVersion = "insight-v2-persisted";
+const insightPlaceholderSummary =
+  "Insight sedang disusun dari catatan terbaru. Hasil ini tetap bersifat pendamping dan bukan diagnosis.";
+
+const llmInsightResponseSchema = z.object({
+  summary: z.string().trim().min(1).max(1200),
+  alerts: z.array(z.string().trim().min(1).max(240)).max(5),
+  recommendations: z.array(z.string().trim().min(1).max(240)).max(5),
+  confidenceScore: z.number().min(0).max(1).nullable().optional(),
+});
+
+type InsightGenerationPayload = {
+  summary: string;
+  alerts: string[];
+  recommendations: string[];
+  confidenceScore: number;
+  generatedBy: string;
+  modelName: string | null;
+  promptVersion: string;
+  rawOutput: Prisma.InputJsonValue;
 };
 
 function parseStringArray(value: Prisma.JsonValue | null): string[] {
@@ -80,6 +159,14 @@ export function serializeInsight(insight: InsightRecord): SerializedInsight {
     rangeStart: insight.rangeStart?.toISOString() ?? null,
     rangeEnd: insight.rangeEnd?.toISOString() ?? null,
     generatedBy: insight.generatedBy,
+    sourceDataHash: insight.sourceDataHash,
+    status: insight.status,
+    version: insight.version,
+    modelName: insight.modelName,
+    promptVersion: insight.promptVersion,
+    isActive: insight.isActive,
+    staleAt: insight.staleAt?.toISOString() ?? null,
+    generatedAt: insight.generatedAt?.toISOString() ?? null,
     createdAt: insight.createdAt.toISOString(),
     updatedAt: insight.updatedAt.toISOString(),
   };
@@ -144,7 +231,177 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-async function buildInsightDraft(childId: string): Promise<GeneratedInsightDraft> {
+function buildFallbackInsightPayload(draft: GeneratedInsightDraft): InsightGenerationPayload {
+  const confidenceScore = Number(clamp(draft.confidenceScore, 0, 1).toFixed(2));
+
+  return {
+    summary: draft.summary,
+    alerts: draft.alerts,
+    recommendations: draft.recommendations,
+    confidenceScore,
+    generatedBy: "rule-based",
+    modelName: null,
+    promptVersion: insightPromptVersion,
+    rawOutput: {
+      summary: draft.summary,
+      alerts: draft.alerts,
+      recommendations: draft.recommendations,
+      confidenceScore,
+    },
+  };
+}
+
+function getInsightLlmConfig() {
+  const apiUrl = process.env.INSIGHT_LLM_API_URL?.trim();
+  const apiKey = process.env.INSIGHT_LLM_API_KEY?.trim();
+  const model = process.env.INSIGHT_LLM_MODEL?.trim();
+
+  if (!apiUrl || !apiKey || !model) {
+    return null;
+  }
+
+  return {
+    apiUrl,
+    apiKey,
+    model,
+  };
+}
+
+function buildInsightLlmMessages(snapshot: InsightSnapshot, draft: GeneratedInsightDraft) {
+  return [
+    {
+      role: "system",
+      content:
+        "Anda adalah asisten untuk aplikasi parenting. Gunakan hanya fakta dari input. Jangan memberi diagnosis, obat, dosis, atau menambah fakta baru. Balas hanya JSON dengan field summary, alerts, recommendations, confidenceScore.",
+    },
+    {
+      role: "user",
+      content: JSON.stringify({
+        task: "Rapikan insight anak menjadi narasi yang aman, konsisten, dan non-diagnostik.",
+        rules: {
+          language: "id-ID",
+          nonDiagnostic: true,
+          preserveEvidenceOnly: true,
+          maxAlerts: 3,
+          maxRecommendations: 3,
+        },
+        snapshot,
+        baselineDraft: {
+          summary: draft.summary,
+          alerts: draft.alerts,
+          recommendations: draft.recommendations,
+          confidenceScore: Number(draft.confidenceScore.toFixed(2)),
+        },
+      }),
+    },
+  ];
+}
+
+function parseChatCompletionContent(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const choices = (payload as { choices?: unknown }).choices;
+  if (!Array.isArray(choices) || choices.length === 0) {
+    return null;
+  }
+
+  const firstChoice = choices[0];
+  if (!firstChoice || typeof firstChoice !== "object") {
+    return null;
+  }
+
+  const message = (firstChoice as { message?: unknown }).message;
+  if (!message || typeof message !== "object") {
+    return null;
+  }
+
+  const content = (message as { content?: unknown }).content;
+  return typeof content === "string" ? content : null;
+}
+
+async function generateInsightWithLlm(
+  snapshot: InsightSnapshot,
+  draft: GeneratedInsightDraft,
+): Promise<InsightGenerationPayload> {
+  const config = getInsightLlmConfig();
+  if (!config) {
+    return buildFallbackInsightPayload(draft);
+  }
+
+  try {
+    const response = await fetch(config.apiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: config.model,
+        temperature: 0.1,
+        response_format: {
+          type: "json_object",
+        },
+        messages: buildInsightLlmMessages(snapshot, draft),
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`LLM request failed with status ${response.status}`);
+    }
+
+    const payload = (await response.json()) as unknown;
+    const content = parseChatCompletionContent(payload);
+
+    if (!content) {
+      throw new Error("LLM response content is empty");
+    }
+
+    const parsed = llmInsightResponseSchema.parse(JSON.parse(content));
+    const confidenceScore = Number(
+      clamp(parsed.confidenceScore ?? draft.confidenceScore, 0, 1).toFixed(2),
+    );
+
+    return {
+      summary: parsed.summary,
+      alerts: parsed.alerts,
+      recommendations: parsed.recommendations,
+      confidenceScore,
+      generatedBy: "llm",
+      modelName: config.model,
+      promptVersion: insightPromptVersion,
+      rawOutput: payload as Prisma.InputJsonValue,
+    };
+  } catch (error) {
+    console.error("Failed to generate insight with LLM, falling back to rule-based", error);
+    return buildFallbackInsightPayload(draft);
+  }
+}
+
+function stableJsonStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableJsonStringify(item)).join(",")}]`;
+  }
+
+  const entries = Object.entries(value as Record<string, unknown>).sort(([left], [right]) =>
+    left.localeCompare(right),
+  );
+
+  return `{${entries
+    .map(([key, entryValue]) => `${JSON.stringify(key)}:${stableJsonStringify(entryValue)}`)
+    .join(",")}}`;
+}
+
+function buildInsightSnapshotHash(snapshot: InsightSnapshot) {
+  return createHash("sha256").update(stableJsonStringify(snapshot)).digest("hex");
+}
+
+async function buildInsightDraft(childId: string): Promise<InsightBuildResult> {
   const now = new Date();
   const rangeEnd = now;
   const rangeStart = addDays(startOfDay(now), -13);
@@ -190,17 +447,46 @@ async function buildInsightDraft(childId: string): Promise<GeneratedInsightDraft
     listRoadmapItemsForChild(childId),
   ]);
 
+  const focusAreas = child.focusAreas.map((area) => enumToFocusAreaMap[area]);
+  const snapshot: InsightSnapshot = {
+    childId: child.id,
+    childName: child.name,
+    focusAreas,
+    rangeStart: rangeStart.toISOString(),
+    rangeEnd: rangeEnd.toISOString(),
+    previousRangeStart: previousRangeStart.toISOString(),
+    previousRangeEnd: previousRangeEnd.toISOString(),
+    currentEntries: currentEntries.map((entry) => ({
+      area: enumToFocusAreaMap[entry.area],
+      observedAt: entry.observedAt.toISOString(),
+    })),
+    previousEntries: previousEntries.map((entry) => ({
+      area: enumToFocusAreaMap[entry.area],
+    })),
+    roadmapItems: roadmapItems.map((item) => ({
+      title: item.title,
+      status: item.status,
+    })),
+  };
+
+  const sourceDataHash = buildInsightSnapshotHash(snapshot);
+
   if (currentEntries.length === 0) {
     return {
-      summary: `Belum ada cukup catatan baru untuk membaca pola ${child.name} minggu ini. Tambahkan observasi rutin agar dashboard bisa merangkum perubahan dengan lebih bermakna. Insight ini bukan diagnosis.`,
-      alerts: ["Catatan mingguan masih terbatas sehingga pola belum terlihat jelas."],
-      recommendations: buildRecommendations(
-        child.focusAreas[0] ? enumToFocusAreaMap[child.focusAreas[0]] : null,
-        roadmapItems.map((item) => item.title),
-      ),
-      confidenceScore: 0.25,
-      rangeStart,
-      rangeEnd,
+      childId,
+      snapshot,
+      sourceDataHash,
+      draft: {
+        summary: `Belum ada cukup catatan baru untuk membaca pola ${child.name} minggu ini. Tambahkan observasi rutin agar dashboard bisa merangkum perubahan dengan lebih bermakna. Insight ini bukan diagnosis.`,
+        alerts: ["Catatan mingguan masih terbatas sehingga pola belum terlihat jelas."],
+        recommendations: buildRecommendations(
+          focusAreas[0] ?? null,
+          roadmapItems.map((item) => item.title),
+        ),
+        confidenceScore: 0.25,
+        rangeStart,
+        rangeEnd,
+      },
     };
   }
 
@@ -215,10 +501,7 @@ async function buildInsightDraft(childId: string): Promise<GeneratedInsightDraft
 
   const previousCount = previousEntries.length;
   const currentCount = currentEntries.length;
-  const dominantArea = pickDominantArea(
-    currentAreaCounts,
-    child.focusAreas.map((area) => enumToFocusAreaMap[area]),
-  );
+  const dominantArea = pickDominantArea(currentAreaCounts, focusAreas);
 
   const growthText =
     currentCount > previousCount
@@ -252,12 +535,17 @@ async function buildInsightDraft(childId: string): Promise<GeneratedInsightDraft
       : "Roadmap saat ini bisa dipakai sebagai fokus latihan rumah berikutnya.";
 
   return {
-    summary: `${growthText} untuk ${child.name}, ${summaryArea}. Pola ini bisa dipakai sebagai bahan diskusi lanjutan bersama pendamping atau profesional, bukan sebagai diagnosis. ${roadmapContext}`,
-    alerts,
-    recommendations: buildRecommendations(dominantArea, roadmapItems.map((item) => item.title)),
-    confidenceScore: clamp(0.35 + currentCount * 0.08, 0.35, 0.92),
-    rangeStart,
-    rangeEnd,
+    childId,
+    snapshot,
+    sourceDataHash,
+    draft: {
+      summary: `${growthText} untuk ${child.name}, ${summaryArea}. Pola ini bisa dipakai sebagai bahan diskusi lanjutan bersama pendamping atau profesional, bukan sebagai diagnosis. ${roadmapContext}`,
+      alerts,
+      recommendations: buildRecommendations(dominantArea, roadmapItems.map((item) => item.title)),
+      confidenceScore: clamp(0.35 + currentCount * 0.08, 0.35, 0.92),
+      rangeStart,
+      rangeEnd,
+    },
   };
 }
 
@@ -266,7 +554,7 @@ export async function listInsightsForChild(childId: string) {
     where: {
       childId,
     },
-    orderBy: [{ createdAt: "desc" }],
+    orderBy: [{ isActive: "desc" }, { version: "desc" }, { createdAt: "desc" }],
     select: insightSelect,
     take: 10,
   });
@@ -278,12 +566,27 @@ export async function getLatestInsightForChild(childId: string) {
   const insight = await prisma.insight.findFirst({
     where: {
       childId,
+      isActive: true,
     },
-    orderBy: [{ createdAt: "desc" }],
+    orderBy: [{ version: "desc" }, { createdAt: "desc" }],
     select: insightSelect,
   });
 
   return insight ? serializeInsight(insight) : null;
+}
+
+export async function getInsightStateForChild(childId: string): Promise<InsightListState> {
+  const [latest, insights] = await Promise.all([
+    getLatestInsightForChild(childId),
+    listInsightsForChild(childId),
+  ]);
+
+  return {
+    latest,
+    insights,
+    status: latest?.status ?? "EMPTY",
+    isStale: latest?.status === "STALE",
+  };
 }
 
 export async function getOwnedInsightForGuardian(guardianId: string, insightId: string) {
@@ -305,25 +608,251 @@ export async function getOwnedInsightForGuardian(guardianId: string, insightId: 
   return insight;
 }
 
-export async function generateInsightForChild(childId: string, generatedBy = "rule-based") {
-  const draft = await buildInsightDraft(childId);
+export async function markInsightsStaleForChild(childId: string) {
+  const staleAt = new Date();
 
+  await prisma.insight.updateMany({
+    where: {
+      childId,
+      isActive: true,
+      status: {
+        not: "ARCHIVED",
+      },
+    },
+    data: {
+      status: "STALE",
+      staleAt,
+    },
+  });
+}
+
+async function getLatestInsightVersion(childId: string) {
+  const latestVersionRecord = await prisma.insight.findFirst({
+    where: {
+      childId,
+      kind: InsightKind.WEEKLY,
+    },
+    orderBy: [{ version: "desc" }, { createdAt: "desc" }],
+    select: {
+      version: true,
+    },
+  });
+
+  return latestVersionRecord?.version ?? 0;
+}
+
+async function setInsightRefreshPending(childId: string) {
+  const activeInsight = await prisma.insight.findFirst({
+    where: {
+      childId,
+      kind: InsightKind.WEEKLY,
+      isActive: true,
+    },
+    orderBy: [{ version: "desc" }, { createdAt: "desc" }],
+    select: insightSelect,
+  });
+
+  if (activeInsight) {
+    if (activeInsight.status === "PENDING") {
+      return false;
+    }
+
+    await prisma.insight.update({
+      where: {
+        id: activeInsight.id,
+      },
+      data: {
+        status: "PENDING",
+        staleAt: activeInsight.staleAt ?? new Date(),
+      },
+    });
+
+    return true;
+  }
+
+  const version = (await getLatestInsightVersion(childId)) + 1;
+
+  await prisma.insight.create({
+    data: {
+      childId,
+      kind: InsightKind.WEEKLY,
+      summary: insightPlaceholderSummary,
+      alerts: [],
+      recommendations: [],
+      confidenceScore: 0,
+      generatedBy: "system",
+      status: "PENDING",
+      version,
+      promptVersion: insightPromptVersion,
+      isActive: true,
+      staleAt: new Date(),
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return true;
+}
+
+async function markInsightRefreshFailed(childId: string, error: unknown) {
+  const activeInsight = await prisma.insight.findFirst({
+    where: {
+      childId,
+      kind: InsightKind.WEEKLY,
+      isActive: true,
+    },
+    orderBy: [{ version: "desc" }, { createdAt: "desc" }],
+    select: {
+      id: true,
+      rawOutput: true,
+    },
+  });
+
+  if (!activeInsight) {
+    return;
+  }
+
+  await prisma.insight.update({
+    where: {
+      id: activeInsight.id,
+    },
+    data: {
+      status: "FAILED",
+      rawOutput:
+        activeInsight.rawOutput && typeof activeInsight.rawOutput === "object"
+          ? {
+              ...(activeInsight.rawOutput as Record<string, unknown>),
+              error: error instanceof Error ? error.message : "Insight generation failed",
+            }
+          : {
+              error: error instanceof Error ? error.message : "Insight generation failed",
+            },
+    },
+  });
+}
+
+export async function scheduleInsightRefreshForChild(childId: string) {
+  const shouldRun = await setInsightRefreshPending(childId);
+  if (!shouldRun) {
+    return;
+  }
+
+  void generateInsightForChild(childId).catch(async (error) => {
+    await markInsightRefreshFailed(childId, error);
+  });
+}
+
+export async function generateInsightForChild(childId: string) {
+  const { draft, snapshot, sourceDataHash } = await buildInsightDraft(childId);
+  const generatedPayload = await generateInsightWithLlm(snapshot, draft);
+
+  const existingInsight = await prisma.insight.findFirst({
+    where: {
+      childId,
+      kind: InsightKind.WEEKLY,
+      sourceDataHash,
+    },
+    orderBy: [{ version: "desc" }, { createdAt: "desc" }],
+    select: insightSelect,
+  });
+
+  if (existingInsight) {
+    await prisma.insight.updateMany({
+      where: {
+        childId,
+        kind: InsightKind.WEEKLY,
+        isActive: true,
+        id: {
+          not: existingInsight.id,
+        },
+      },
+      data: {
+        isActive: false,
+        status: "ARCHIVED",
+      },
+    });
+
+    const refreshedInsight = await prisma.insight.update({
+      where: {
+        id: existingInsight.id,
+      },
+      data: {
+        summary: generatedPayload.summary,
+        alerts: generatedPayload.alerts,
+        recommendations: generatedPayload.recommendations,
+        confidenceScore: generatedPayload.confidenceScore,
+        generatedBy: generatedPayload.generatedBy,
+        modelName: generatedPayload.modelName,
+        promptVersion: generatedPayload.promptVersion,
+        rawInput: snapshot,
+        rawOutput: generatedPayload.rawOutput,
+        isActive: true,
+        status: "READY",
+        staleAt: null,
+        generatedAt: existingInsight.generatedAt ?? new Date(),
+      },
+      select: insightSelect,
+    });
+
+    const serializedInsight = serializeInsight(refreshedInsight);
+    await personalizeRoadmapForChild({
+      childId,
+      latestInsight: serializedInsight,
+      trigger: "insight.ready",
+    });
+
+    return serializedInsight;
+  }
+
+  const latestVersion = await getLatestInsightVersion(childId);
+
+  await prisma.insight.updateMany({
+    where: {
+      childId,
+      kind: InsightKind.WEEKLY,
+      isActive: true,
+    },
+    data: {
+      isActive: false,
+      status: "ARCHIVED",
+    },
+  });
+
+  const now = new Date();
   const insight = await prisma.insight.create({
     data: {
       childId,
       kind: InsightKind.WEEKLY,
-      summary: draft.summary,
-      alerts: draft.alerts,
-      recommendations: draft.recommendations,
-      confidenceScore: Number(draft.confidenceScore.toFixed(2)),
+      summary: generatedPayload.summary,
+      alerts: generatedPayload.alerts,
+      recommendations: generatedPayload.recommendations,
+      confidenceScore: generatedPayload.confidenceScore,
       rangeStart: draft.rangeStart,
       rangeEnd: draft.rangeEnd,
-      generatedBy,
+      generatedBy: generatedPayload.generatedBy,
+      sourceDataHash,
+      status: "READY",
+      version: latestVersion + 1,
+      modelName: generatedPayload.modelName,
+      promptVersion: generatedPayload.promptVersion,
+      rawInput: snapshot,
+      rawOutput: generatedPayload.rawOutput,
+      isActive: true,
+      staleAt: null,
+      generatedAt: now,
     },
     select: insightSelect,
   });
 
-  return serializeInsight(insight);
+  const serializedInsight = serializeInsight(insight);
+  await personalizeRoadmapForChild({
+    childId,
+    latestInsight: serializedInsight,
+    trigger: "insight.ready",
+  });
+
+  return serializedInsight;
 }
 
 export async function getLatestOrGeneratedInsightForChild(childId: string) {
@@ -332,5 +861,5 @@ export async function getLatestOrGeneratedInsightForChild(childId: string) {
     return latestInsight;
   }
 
-  return generateInsightForChild(childId);
+  return null;
 }

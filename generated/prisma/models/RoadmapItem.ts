@@ -46,6 +46,10 @@ export type RoadmapItemMinAggregateOutputType = {
   confidenceScore: number | null
   sortOrder: number | null
   achievedAt: Date | null
+  lastPersonalizedAt: Date | null
+  personalizationSource: string | null
+  sourceInsightId: string | null
+  personalizationReason: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -60,6 +64,10 @@ export type RoadmapItemMaxAggregateOutputType = {
   confidenceScore: number | null
   sortOrder: number | null
   achievedAt: Date | null
+  lastPersonalizedAt: Date | null
+  personalizationSource: string | null
+  sourceInsightId: string | null
+  personalizationReason: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -75,6 +83,10 @@ export type RoadmapItemCountAggregateOutputType = {
   confidenceScore: number
   sortOrder: number
   achievedAt: number
+  lastPersonalizedAt: number
+  personalizationSource: number
+  sourceInsightId: number
+  personalizationReason: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -101,6 +113,10 @@ export type RoadmapItemMinAggregateInputType = {
   confidenceScore?: true
   sortOrder?: true
   achievedAt?: true
+  lastPersonalizedAt?: true
+  personalizationSource?: true
+  sourceInsightId?: true
+  personalizationReason?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -115,6 +131,10 @@ export type RoadmapItemMaxAggregateInputType = {
   confidenceScore?: true
   sortOrder?: true
   achievedAt?: true
+  lastPersonalizedAt?: true
+  personalizationSource?: true
+  sourceInsightId?: true
+  personalizationReason?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -130,6 +150,10 @@ export type RoadmapItemCountAggregateInputType = {
   confidenceScore?: true
   sortOrder?: true
   achievedAt?: true
+  lastPersonalizedAt?: true
+  personalizationSource?: true
+  sourceInsightId?: true
+  personalizationReason?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -232,6 +256,10 @@ export type RoadmapItemGroupByOutputType = {
   confidenceScore: number
   sortOrder: number
   achievedAt: Date | null
+  lastPersonalizedAt: Date | null
+  personalizationSource: string | null
+  sourceInsightId: string | null
+  personalizationReason: string | null
   createdAt: Date
   updatedAt: Date
   _count: RoadmapItemCountAggregateOutputType | null
@@ -270,6 +298,10 @@ export type RoadmapItemWhereInput = {
   confidenceScore?: Prisma.FloatFilter<"RoadmapItem"> | number
   sortOrder?: Prisma.IntFilter<"RoadmapItem"> | number
   achievedAt?: Prisma.DateTimeNullableFilter<"RoadmapItem"> | Date | string | null
+  lastPersonalizedAt?: Prisma.DateTimeNullableFilter<"RoadmapItem"> | Date | string | null
+  personalizationSource?: Prisma.StringNullableFilter<"RoadmapItem"> | string | null
+  sourceInsightId?: Prisma.StringNullableFilter<"RoadmapItem"> | string | null
+  personalizationReason?: Prisma.StringNullableFilter<"RoadmapItem"> | string | null
   createdAt?: Prisma.DateTimeFilter<"RoadmapItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RoadmapItem"> | Date | string
   child?: Prisma.XOR<Prisma.ChildScalarRelationFilter, Prisma.ChildWhereInput>
@@ -286,6 +318,10 @@ export type RoadmapItemOrderByWithRelationInput = {
   confidenceScore?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
   achievedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastPersonalizedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  personalizationSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceInsightId?: Prisma.SortOrderInput | Prisma.SortOrder
+  personalizationReason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   child?: Prisma.ChildOrderByWithRelationInput
@@ -305,6 +341,10 @@ export type RoadmapItemWhereUniqueInput = Prisma.AtLeast<{
   confidenceScore?: Prisma.FloatFilter<"RoadmapItem"> | number
   sortOrder?: Prisma.IntFilter<"RoadmapItem"> | number
   achievedAt?: Prisma.DateTimeNullableFilter<"RoadmapItem"> | Date | string | null
+  lastPersonalizedAt?: Prisma.DateTimeNullableFilter<"RoadmapItem"> | Date | string | null
+  personalizationSource?: Prisma.StringNullableFilter<"RoadmapItem"> | string | null
+  sourceInsightId?: Prisma.StringNullableFilter<"RoadmapItem"> | string | null
+  personalizationReason?: Prisma.StringNullableFilter<"RoadmapItem"> | string | null
   createdAt?: Prisma.DateTimeFilter<"RoadmapItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RoadmapItem"> | Date | string
   child?: Prisma.XOR<Prisma.ChildScalarRelationFilter, Prisma.ChildWhereInput>
@@ -321,6 +361,10 @@ export type RoadmapItemOrderByWithAggregationInput = {
   confidenceScore?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
   achievedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastPersonalizedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  personalizationSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceInsightId?: Prisma.SortOrderInput | Prisma.SortOrder
+  personalizationReason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.RoadmapItemCountOrderByAggregateInput
@@ -344,6 +388,10 @@ export type RoadmapItemScalarWhereWithAggregatesInput = {
   confidenceScore?: Prisma.FloatWithAggregatesFilter<"RoadmapItem"> | number
   sortOrder?: Prisma.IntWithAggregatesFilter<"RoadmapItem"> | number
   achievedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RoadmapItem"> | Date | string | null
+  lastPersonalizedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RoadmapItem"> | Date | string | null
+  personalizationSource?: Prisma.StringNullableWithAggregatesFilter<"RoadmapItem"> | string | null
+  sourceInsightId?: Prisma.StringNullableWithAggregatesFilter<"RoadmapItem"> | string | null
+  personalizationReason?: Prisma.StringNullableWithAggregatesFilter<"RoadmapItem"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RoadmapItem"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"RoadmapItem"> | Date | string
 }
@@ -358,6 +406,10 @@ export type RoadmapItemCreateInput = {
   confidenceScore?: number
   sortOrder?: number
   achievedAt?: Date | string | null
+  lastPersonalizedAt?: Date | string | null
+  personalizationSource?: string | null
+  sourceInsightId?: string | null
+  personalizationReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   child: Prisma.ChildCreateNestedOneWithoutRoadmapItemsInput
@@ -374,6 +426,10 @@ export type RoadmapItemUncheckedCreateInput = {
   confidenceScore?: number
   sortOrder?: number
   achievedAt?: Date | string | null
+  lastPersonalizedAt?: Date | string | null
+  personalizationSource?: string | null
+  sourceInsightId?: string | null
+  personalizationReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -388,6 +444,10 @@ export type RoadmapItemUpdateInput = {
   confidenceScore?: Prisma.FloatFieldUpdateOperationsInput | number
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   achievedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastPersonalizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  personalizationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceInsightId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalizationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   child?: Prisma.ChildUpdateOneRequiredWithoutRoadmapItemsNestedInput
@@ -404,6 +464,10 @@ export type RoadmapItemUncheckedUpdateInput = {
   confidenceScore?: Prisma.FloatFieldUpdateOperationsInput | number
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   achievedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastPersonalizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  personalizationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceInsightId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalizationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -419,6 +483,10 @@ export type RoadmapItemCreateManyInput = {
   confidenceScore?: number
   sortOrder?: number
   achievedAt?: Date | string | null
+  lastPersonalizedAt?: Date | string | null
+  personalizationSource?: string | null
+  sourceInsightId?: string | null
+  personalizationReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -433,6 +501,10 @@ export type RoadmapItemUpdateManyMutationInput = {
   confidenceScore?: Prisma.FloatFieldUpdateOperationsInput | number
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   achievedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastPersonalizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  personalizationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceInsightId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalizationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -448,6 +520,10 @@ export type RoadmapItemUncheckedUpdateManyInput = {
   confidenceScore?: Prisma.FloatFieldUpdateOperationsInput | number
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   achievedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastPersonalizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  personalizationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceInsightId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalizationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -473,6 +549,10 @@ export type RoadmapItemCountOrderByAggregateInput = {
   confidenceScore?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
   achievedAt?: Prisma.SortOrder
+  lastPersonalizedAt?: Prisma.SortOrder
+  personalizationSource?: Prisma.SortOrder
+  sourceInsightId?: Prisma.SortOrder
+  personalizationReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -492,6 +572,10 @@ export type RoadmapItemMaxOrderByAggregateInput = {
   confidenceScore?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
   achievedAt?: Prisma.SortOrder
+  lastPersonalizedAt?: Prisma.SortOrder
+  personalizationSource?: Prisma.SortOrder
+  sourceInsightId?: Prisma.SortOrder
+  personalizationReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -506,6 +590,10 @@ export type RoadmapItemMinOrderByAggregateInput = {
   confidenceScore?: Prisma.SortOrder
   sortOrder?: Prisma.SortOrder
   achievedAt?: Prisma.SortOrder
+  lastPersonalizedAt?: Prisma.SortOrder
+  personalizationSource?: Prisma.SortOrder
+  sourceInsightId?: Prisma.SortOrder
+  personalizationReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -587,6 +675,10 @@ export type RoadmapItemCreateWithoutChildInput = {
   confidenceScore?: number
   sortOrder?: number
   achievedAt?: Date | string | null
+  lastPersonalizedAt?: Date | string | null
+  personalizationSource?: string | null
+  sourceInsightId?: string | null
+  personalizationReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -601,6 +693,10 @@ export type RoadmapItemUncheckedCreateWithoutChildInput = {
   confidenceScore?: number
   sortOrder?: number
   achievedAt?: Date | string | null
+  lastPersonalizedAt?: Date | string | null
+  personalizationSource?: string | null
+  sourceInsightId?: string | null
+  personalizationReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -645,6 +741,10 @@ export type RoadmapItemScalarWhereInput = {
   confidenceScore?: Prisma.FloatFilter<"RoadmapItem"> | number
   sortOrder?: Prisma.IntFilter<"RoadmapItem"> | number
   achievedAt?: Prisma.DateTimeNullableFilter<"RoadmapItem"> | Date | string | null
+  lastPersonalizedAt?: Prisma.DateTimeNullableFilter<"RoadmapItem"> | Date | string | null
+  personalizationSource?: Prisma.StringNullableFilter<"RoadmapItem"> | string | null
+  sourceInsightId?: Prisma.StringNullableFilter<"RoadmapItem"> | string | null
+  personalizationReason?: Prisma.StringNullableFilter<"RoadmapItem"> | string | null
   createdAt?: Prisma.DateTimeFilter<"RoadmapItem"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RoadmapItem"> | Date | string
 }
@@ -659,6 +759,10 @@ export type RoadmapItemCreateManyChildInput = {
   confidenceScore?: number
   sortOrder?: number
   achievedAt?: Date | string | null
+  lastPersonalizedAt?: Date | string | null
+  personalizationSource?: string | null
+  sourceInsightId?: string | null
+  personalizationReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -673,6 +777,10 @@ export type RoadmapItemUpdateWithoutChildInput = {
   confidenceScore?: Prisma.FloatFieldUpdateOperationsInput | number
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   achievedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastPersonalizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  personalizationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceInsightId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalizationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -687,6 +795,10 @@ export type RoadmapItemUncheckedUpdateWithoutChildInput = {
   confidenceScore?: Prisma.FloatFieldUpdateOperationsInput | number
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   achievedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastPersonalizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  personalizationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceInsightId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalizationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -701,6 +813,10 @@ export type RoadmapItemUncheckedUpdateManyWithoutChildInput = {
   confidenceScore?: Prisma.FloatFieldUpdateOperationsInput | number
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   achievedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastPersonalizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  personalizationSource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceInsightId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalizationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -718,6 +834,10 @@ export type RoadmapItemSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   confidenceScore?: boolean
   sortOrder?: boolean
   achievedAt?: boolean
+  lastPersonalizedAt?: boolean
+  personalizationSource?: boolean
+  sourceInsightId?: boolean
+  personalizationReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   child?: boolean | Prisma.ChildDefaultArgs<ExtArgs>
@@ -734,6 +854,10 @@ export type RoadmapItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   confidenceScore?: boolean
   sortOrder?: boolean
   achievedAt?: boolean
+  lastPersonalizedAt?: boolean
+  personalizationSource?: boolean
+  sourceInsightId?: boolean
+  personalizationReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   child?: boolean | Prisma.ChildDefaultArgs<ExtArgs>
@@ -750,6 +874,10 @@ export type RoadmapItemSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   confidenceScore?: boolean
   sortOrder?: boolean
   achievedAt?: boolean
+  lastPersonalizedAt?: boolean
+  personalizationSource?: boolean
+  sourceInsightId?: boolean
+  personalizationReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   child?: boolean | Prisma.ChildDefaultArgs<ExtArgs>
@@ -766,11 +894,15 @@ export type RoadmapItemSelectScalar = {
   confidenceScore?: boolean
   sortOrder?: boolean
   achievedAt?: boolean
+  lastPersonalizedAt?: boolean
+  personalizationSource?: boolean
+  sourceInsightId?: boolean
+  personalizationReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type RoadmapItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "childId" | "area" | "title" | "detail" | "status" | "evidence" | "confidenceScore" | "sortOrder" | "achievedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["roadmapItem"]>
+export type RoadmapItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "childId" | "area" | "title" | "detail" | "status" | "evidence" | "confidenceScore" | "sortOrder" | "achievedAt" | "lastPersonalizedAt" | "personalizationSource" | "sourceInsightId" | "personalizationReason" | "createdAt" | "updatedAt", ExtArgs["result"]["roadmapItem"]>
 export type RoadmapItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   child?: boolean | Prisma.ChildDefaultArgs<ExtArgs>
 }
@@ -797,6 +929,10 @@ export type $RoadmapItemPayload<ExtArgs extends runtime.Types.Extensions.Interna
     confidenceScore: number
     sortOrder: number
     achievedAt: Date | null
+    lastPersonalizedAt: Date | null
+    personalizationSource: string | null
+    sourceInsightId: string | null
+    personalizationReason: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["roadmapItem"]>
@@ -1233,6 +1369,10 @@ export interface RoadmapItemFieldRefs {
   readonly confidenceScore: Prisma.FieldRef<"RoadmapItem", 'Float'>
   readonly sortOrder: Prisma.FieldRef<"RoadmapItem", 'Int'>
   readonly achievedAt: Prisma.FieldRef<"RoadmapItem", 'DateTime'>
+  readonly lastPersonalizedAt: Prisma.FieldRef<"RoadmapItem", 'DateTime'>
+  readonly personalizationSource: Prisma.FieldRef<"RoadmapItem", 'String'>
+  readonly sourceInsightId: Prisma.FieldRef<"RoadmapItem", 'String'>
+  readonly personalizationReason: Prisma.FieldRef<"RoadmapItem", 'String'>
   readonly createdAt: Prisma.FieldRef<"RoadmapItem", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"RoadmapItem", 'DateTime'>
 }

@@ -5,6 +5,7 @@ import { getOrCreateGuardianForRequest } from "../../../../../../lib/auth/sessio
 import { createAuditLog } from "../../../../../../lib/audit";
 import { markChildOnboardingComplete } from "../../../../../../lib/children";
 import { seedOnboardingConsents } from "../../../../../../lib/consents";
+import { scheduleInsightRefreshForChild } from "../../../../../../lib/insights";
 import { ensureInitialRoadmapForChild } from "../../../../../../lib/roadmap";
 import { handleRouteError, ok } from "../../../../../../lib/api/response";
 import { parseParams, z } from "../../../../../../lib/api/validation";
@@ -28,6 +29,7 @@ export async function POST(
       childId: child.id,
       focusAreas: child.focusAreas,
     });
+    await scheduleInsightRefreshForChild(child.id);
 
     await createAuditLog({
       guardianId: guardian.id,

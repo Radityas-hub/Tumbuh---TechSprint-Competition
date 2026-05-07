@@ -1,6 +1,6 @@
-import type { Prisma } from "../generated/prisma/client";
 import { FocusArea, RoadmapStatus } from "../generated/prisma/enums";
 
+import { markInsightsStaleForChild, scheduleInsightRefreshForChild } from "./insights";
 import { notFound } from "./api/errors";
 import { focusAreaLabels, type FocusAreaLabel } from "./children";
 import { prisma } from "./prisma";
@@ -16,11 +16,32 @@ const roadmapSelect = {
   confidenceScore: true,
   sortOrder: true,
   achievedAt: true,
+  lastPersonalizedAt: true,
+  personalizationSource: true,
+  sourceInsightId: true,
+  personalizationReason: true,
   createdAt: true,
   updatedAt: true,
-} satisfies Prisma.RoadmapItemSelect;
+};
 
-type RoadmapRecord = Prisma.RoadmapItemGetPayload<{ select: typeof roadmapSelect }>;
+type RoadmapRecord = {
+  id: string;
+  childId: string;
+  area: (typeof FocusArea)[keyof typeof FocusArea];
+  title: string;
+  detail: string | null;
+  status: (typeof RoadmapStatus)[keyof typeof RoadmapStatus];
+  evidence: unknown;
+  confidenceScore: number;
+  sortOrder: number;
+  achievedAt: Date | null;
+  lastPersonalizedAt: Date | null;
+  personalizationSource: string | null;
+  sourceInsightId: string | null;
+  personalizationReason: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export const roadmapStatusLabels = {
   [RoadmapStatus.ACHIEVED]: "Tercapai",
@@ -71,8 +92,19 @@ export type SerializedRoadmapItem = {
   confidenceScore: number;
   sortOrder: number;
   achievedAt: string | null;
+  lastPersonalizedAt: string | null;
+  personalizationSource: string | null;
+  sourceInsightId: string | null;
+  personalizationReason: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type RoadmapResponseMeta = {
+  personalizedAt: string | null;
+  personalizationSource: string | null;
+  sourceInsightId: string | null;
+  isDerivedFromLatestInsight: boolean;
 };
 
 export type UpdateRoadmapItemInput = {
@@ -87,7 +119,7 @@ type RoadmapSeedInput = {
   focusAreas: FocusAreaLabel[];
 };
 
-function parseEvidence(value: Prisma.JsonValue | null): string[] {
+function parseEvidence(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -109,6 +141,10 @@ export function serializeRoadmapItem(item: RoadmapRecord): SerializedRoadmapItem
     confidenceScore: item.confidenceScore,
     sortOrder: item.sortOrder,
     achievedAt: item.achievedAt?.toISOString() ?? null,
+    lastPersonalizedAt: item.lastPersonalizedAt?.toISOString() ?? null,
+    personalizationSource: item.personalizationSource,
+    sourceInsightId: item.sourceInsightId,
+    personalizationReason: item.personalizationReason,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
   };
@@ -235,6 +271,27 @@ export async function listRoadmapItemsForChild(childId: string) {
   return items.map(serializeRoadmapItem);
 }
 
+export function buildRoadmapMeta(
+  items: SerializedRoadmapItem[],
+  latestInsightId: string | null = null,
+): RoadmapResponseMeta {
+  const latestPersonalizedItem = items
+    .filter((item) => item.lastPersonalizedAt)
+    .sort((left, right) =>
+      (right.lastPersonalizedAt ?? "").localeCompare(left.lastPersonalizedAt ?? ""),
+    )[0];
+
+  return {
+    personalizedAt: latestPersonalizedItem?.lastPersonalizedAt ?? null,
+    personalizationSource: latestPersonalizedItem?.personalizationSource ?? null,
+    sourceInsightId: latestPersonalizedItem?.sourceInsightId ?? null,
+    isDerivedFromLatestInsight:
+      latestInsightId !== null &&
+      latestPersonalizedItem?.sourceInsightId != null &&
+      latestPersonalizedItem.sourceInsightId === latestInsightId,
+  };
+}
+
 export async function getOwnedRoadmapItemForGuardian(guardianId: string, itemId: string) {
   const item = await prisma.roadmapItem.findFirst({
     where: {
@@ -280,6 +337,9 @@ export async function updateOwnedRoadmapItemForGuardian(
     },
     select: roadmapSelect,
   });
+
+  await markInsightsStaleForChild(childId);
+  await scheduleInsightRefreshForChild(childId);
 
   return serializeRoadmapItem(item);
 }

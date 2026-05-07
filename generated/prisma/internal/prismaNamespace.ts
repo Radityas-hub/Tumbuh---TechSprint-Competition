@@ -1511,6 +1511,10 @@ export const RoadmapItemScalarFieldEnum = {
   confidenceScore: 'confidenceScore',
   sortOrder: 'sortOrder',
   achievedAt: 'achievedAt',
+  lastPersonalizedAt: 'lastPersonalizedAt',
+  personalizationSource: 'personalizationSource',
+  sourceInsightId: 'sourceInsightId',
+  personalizationReason: 'personalizationReason',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1530,6 +1534,16 @@ export const InsightScalarFieldEnum = {
   rangeStart: 'rangeStart',
   rangeEnd: 'rangeEnd',
   generatedBy: 'generatedBy',
+  sourceDataHash: 'sourceDataHash',
+  status: 'status',
+  version: 'version',
+  modelName: 'modelName',
+  promptVersion: 'promptVersion',
+  rawInput: 'rawInput',
+  rawOutput: 'rawOutput',
+  isActive: 'isActive',
+  staleAt: 'staleAt',
+  generatedAt: 'generatedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

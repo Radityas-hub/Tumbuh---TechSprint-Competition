@@ -489,10 +489,14 @@ export async function getSerializedOwnedMediaAssetForGuardian(guardianId: string
   return serializeMediaAsset(asset);
 }
 
-export async function getMediaFileResponsePayload(mediaId: string) {
-  const asset = await prisma.mediaAsset.findUnique({
+export async function getOwnedMediaFileResponsePayload(guardianId: string, mediaId: string) {
+  const asset = await prisma.mediaAsset.findFirst({
     where: {
       id: mediaId,
+      child: {
+        guardianId,
+        deletedAt: null,
+      },
     },
     select: {
       id: true,
