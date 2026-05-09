@@ -4,70 +4,74 @@ import { dashboardGreeting } from "./personalize";
 export function DashboardSkeleton({ guardianName }: { guardianName: string }) {
   return (
     <>
-      <WorkspaceHeader
-        title={dashboardGreeting(new Date().getHours(), guardianName)}
-        body="Memuat data terbaru..."
-      />
-      <div className="metric-grid">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <article key={index} className="metric-card is-skeleton" aria-hidden>
-            <Skeleton width={56} height={26} radius={6} />
-            <Skeleton width="70%" height={12} radius={6} />
-          </article>
-        ))}
-      </div>
-      <div className="dashboard-grid">
-        <Panel className="wide-panel">
-          <div className="panel-head">
-            <div className="panel-skeleton-head">
-              <Skeleton width={180} height={18} radius={6} />
-              <Skeleton width="60%" height={12} radius={6} />
-            </div>
-            <Skeleton width={68} height={24} radius={999} />
-          </div>
-          <div className="skeleton-chart">
-            {[40, 65, 30, 85, 50, 70, 45].map((h, i) => (
-              <Skeleton key={i} height={`${h}%`} />
-            ))}
-          </div>
-        </Panel>
-        <Panel>
-          <div className="panel-head compact">
-            <Skeleton width={110} height={18} radius={6} />
-            <Skeleton width={22} height={22} radius={6} />
-          </div>
-          <SkeletonText lines={4} />
-          <Skeleton width="40%" height={12} radius={6} />
-          <Skeleton width={160} height={14} radius={6} />
-        </Panel>
-        <Panel>
-          <Skeleton width={140} height={18} radius={6} />
-          <div className="activity-list">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div className="skeleton-row" key={i}>
-                <Skeleton className="skeleton-avatar" />
-                <SkeletonText lines={2} widths={["70%", "90%"]} />
+      {/* Hero skeleton */}
+      <section className="dashboard-hero">
+        <Skeleton width={280} height={28} radius={8} />
+        <div style={{ marginTop: 12 }}>
+          <Skeleton width="80%" height={14} radius={6} />
+          <div style={{ height: 6 }} />
+          <Skeleton width="55%" height={14} radius={6} />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <Skeleton width={150} height={44} radius={999} />
+        </div>
+      </section>
+
+      {/* Body grid skeleton */}
+      <div className="dashboard-body-grid">
+        <Panel className="dashboard-daily-actions">
+          <Skeleton width={200} height={18} radius={6} />
+          <div className="daily-action-list">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div className="daily-action-item mint" key={i}>
+                <div className="daily-action-text">
+                  <Skeleton width="70%" height={14} radius={6} />
+                  <div style={{ height: 6 }} />
+                  <Skeleton width="90%" height={12} radius={6} />
+                  <div style={{ height: 6 }} />
+                  <Skeleton width={80} height={11} radius={6} />
+                </div>
               </div>
             ))}
           </div>
         </Panel>
-        <Panel className="wide-panel">
-          <div className="panel-head">
-            <div className="panel-skeleton-head">
-              <Skeleton width={200} height={18} radius={6} />
-              <Skeleton width="55%" height={12} radius={6} />
-            </div>
-            <Skeleton width={120} height={34} radius={16} />
-          </div>
-          <div className="roadmap-strip">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <article className="strip-item" key={i}>
-                <Skeleton width={10} height={10} radius={999} />
-                <Skeleton width="85%" height={14} radius={6} />
-                <Skeleton width="55%" height={11} radius={6} />
-              </article>
+
+        <Panel className="dashboard-weekly-pulse">
+          <Skeleton width={160} height={18} radius={6} />
+          <div className="pulse-dots">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div className="pulse-day" key={i}>
+                <Skeleton width={12} height={12} radius={999} />
+                <Skeleton width={24} height={10} radius={4} />
+              </div>
             ))}
           </div>
+          <Skeleton width="75%" height={12} radius={6} />
+        </Panel>
+
+        <Panel className="dashboard-focus-targets">
+          <Skeleton width={140} height={18} radius={6} />
+          <div className="focus-target-list">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div className="focus-target-item" key={i}>
+                <Skeleton width={56} height={56} radius={999} />
+                <div style={{ flex: 1 }}>
+                  <Skeleton width="80%" height={14} radius={6} />
+                  <div style={{ height: 6 }} />
+                  <Skeleton width="50%" height={11} radius={6} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel className="dashboard-insight">
+          <div className="insight-head">
+            <Skeleton width={150} height={18} radius={6} />
+            <Skeleton width={20} height={20} radius={6} />
+          </div>
+          <SkeletonText lines={3} />
+          <Skeleton width={120} height={12} radius={6} />
         </Panel>
       </div>
     </>

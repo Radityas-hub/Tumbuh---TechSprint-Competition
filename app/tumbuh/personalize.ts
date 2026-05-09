@@ -231,3 +231,73 @@ export function dashboardGreeting(hour: number, guardianName: string) {
   if (hour < 19) return `Selamat sore, ${guardianName}`;
   return `Selamat malam, ${guardianName}`;
 }
+
+/** Narrative summary for the hero zone — replaces metric grid. */
+export function dashboardNarrative(
+  ctx: ChildContext,
+  opts: {
+    notesThisWeek: number;
+    delta: number;
+    alertCount: number;
+    achievedTargets: number;
+    closestTarget: string | null;
+  },
+) {
+  const name = childReferenceName(ctx);
+  const { notesThisWeek, delta, alertCount, closestTarget } = opts;
+
+  // Build parts
+  const parts: string[] = [];
+
+  // Activity summary
+  if (notesThisWeek === 0) {
+    parts.push(`Belum ada catatan untuk ${name} minggu ini.`);
+  } else if (notesThisWeek === 1) {
+    parts.push(`${name} punya 1 catatan baru minggu ini.`);
+  } else {
+    const trendPhrase = delta > 0 ? ", lebih banyak dari minggu lalu" : "";
+    parts.push(`${name} punya ${notesThisWeek} catatan baru minggu ini${trendPhrase}.`);
+  }
+
+  // Target progress
+  if (closestTarget) {
+    parts.push(`Target "${closestTarget}" mendekati tercapai.`);
+  }
+
+  // Alert or calm
+  if (alertCount > 0) {
+    parts.push("Ada satu hal yang mungkin perlu perhatian.");
+  } else if (notesThisWeek > 0) {
+    parts.push("Tidak ada yang perlu dikhawatirkan minggu ini.");
+  }
+
+  return parts.join(" ");
+}
+
+/** Narrative for empty/first-time dashboard. */
+export function dashboardEmptyNarrative(ctx: ChildContext) {
+  const name = childReferenceName(ctx);
+  return `Dashboard ini akan jadi tempat Anda melihat perkembangan ${name} secara ringkas. Mulai dengan satu langkah kecil.`;
+}
+
+/** Weekly pulse narrative below the dots. */
+export function weeklyPulseNarrative(
+  ctx: ChildContext,
+  opts: { notesThisWeek: number; delta: number; todayIndex: number },
+) {
+  const { notesThisWeek, delta, todayIndex } = opts;
+  const daysElapsed = todayIndex + 1;
+
+  if (notesThisWeek === 0) {
+    return "Belum ada catatan minggu ini. Satu kalimat singkat sudah cukup untuk memulai.";
+  }
+
+  const comparison =
+    delta > 0
+      ? " Lebih aktif dari minggu lalu."
+      : delta < 0
+        ? " Sedikit lebih tenang dari minggu lalu."
+        : " Ritme yang sama dengan minggu lalu.";
+
+  return `${notesThisWeek} catatan dari ${daysElapsed} hari.${comparison}`;
+}

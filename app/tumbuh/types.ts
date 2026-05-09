@@ -164,6 +164,21 @@ export type InsightApiModel = {
   updatedAt: string;
 };
 
+export type DashboardSpotlight = {
+  message: string;
+  area: Area | null;
+  suggestedAction: "insight" | "consultation";
+};
+
+export type DashboardFocusTarget = {
+  id: string;
+  title: string;
+  area: Area;
+  status: "ACHIEVED" | "IN_PROGRESS" | "NEXT_TARGET" | "NEEDS_ATTENTION" | "PAUSED";
+  statusLabel: string;
+  progressPercent: number;
+};
+
 export type DashboardData = {
   metrics: {
     notesThisWeek: number;
@@ -178,19 +193,25 @@ export type DashboardData = {
   trend: {
     direction: "up" | "flat";
     label: string;
+    delta: number;
   };
   latestInsight: InsightApiModel | null;
   activities: Array<{
     title: string;
     body: string;
     area: string;
+    actionType: "practice" | "observe" | "record";
   }>;
   roadmapPreview: RoadmapItemApiModel[];
+  focusTargets: DashboardFocusTarget[];
+  spotlight: DashboardSpotlight | null;
+  dailyDots: boolean[];
   meta: {
     hasMeaningfulProgress: boolean;
     hasCurrentWeekEntries: boolean;
     usesSeedRoadmap: boolean;
     shouldUsePlaceholder: boolean;
+    todayIndex: number;
   };
 };
 

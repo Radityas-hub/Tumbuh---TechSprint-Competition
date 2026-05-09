@@ -98,6 +98,7 @@ export default function TumbuhApp({
               isAuthenticated={isAuthenticated}
               isLoading={isDashboardLoading}
               activeChild={activeChild}
+              onAddEntry={handleProgressCreate}
             />
           )}
           {screen === "roadmap" && (
