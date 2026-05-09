@@ -97,6 +97,36 @@ export type AssistantConversation = Prisma.AssistantConversationModel
  */
 export type AssistantMessage = Prisma.AssistantMessageModel
 /**
+ * Model KnowledgeArticle
+ * 
+ */
+export type KnowledgeArticle = Prisma.KnowledgeArticleModel
+/**
+ * Model KnowledgeChunk
+ * 
+ */
+export type KnowledgeChunk = Prisma.KnowledgeChunkModel
+/**
+ * Model AssistantPolicy
+ * 
+ */
+export type AssistantPolicy = Prisma.AssistantPolicyModel
+/**
+ * Model ChildContextSnapshot
+ * 
+ */
+export type ChildContextSnapshot = Prisma.ChildContextSnapshotModel
+/**
+ * Model AssistantResponseLog
+ * 
+ */
+export type AssistantResponseLog = Prisma.AssistantResponseLogModel
+/**
+ * Model AssistantEvaluation
+ * 
+ */
+export type AssistantEvaluation = Prisma.AssistantEvaluationModel
+/**
  * Model Provider
  * 
  */

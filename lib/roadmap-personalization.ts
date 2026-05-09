@@ -339,12 +339,9 @@ function buildRuleBasedChanges(
 }
 
 function getRoadmapLlmConfig() {
-  const apiUrl =
-    process.env.ROADMAP_LLM_API_URL?.trim() ?? process.env.INSIGHT_LLM_API_URL?.trim() ?? "";
-  const apiKey =
-    process.env.ROADMAP_LLM_API_KEY?.trim() ?? process.env.INSIGHT_LLM_API_KEY?.trim() ?? "";
-  const model =
-    process.env.ROADMAP_LLM_MODEL?.trim() ?? process.env.INSIGHT_LLM_MODEL?.trim() ?? "";
+  const apiUrl = process.env.INSIGHT_LLM_API_URL?.trim() ?? "";
+  const apiKey = process.env.INSIGHT_LLM_API_KEY?.trim() ?? "";
+  const model = process.env.INSIGHT_LLM_MODEL?.trim() ?? "";
 
   if (!apiUrl || !apiKey || !model) {
     return null;

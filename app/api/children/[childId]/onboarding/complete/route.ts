@@ -28,6 +28,10 @@ export async function POST(
     const roadmapItems = await ensureInitialRoadmapForChild({
       childId: child.id,
       focusAreas: child.focusAreas,
+      condition: child.condition,
+      birthDate: child.birthDate,
+      routine: child.routine,
+      supportNeed: child.supportNeed,
     });
     await scheduleInsightRefreshForChild(child.id);
 

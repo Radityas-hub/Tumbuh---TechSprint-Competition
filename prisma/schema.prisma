@@ -72,6 +72,8 @@ model Guardian {
   children               Child[]
   auditLogs              AuditLog[]
   assistantConversations AssistantConversation[]
+  assistantResponseLogs  AssistantResponseLog[]
+  assistantEvaluations   AssistantEvaluation[]
 
   @@map("guardians")
 }
@@ -98,6 +100,9 @@ model Child {
   insights               Insight[]
   auditLogs              AuditLog[]
   assistantConversations AssistantConversation[]
+  contextSnapshots       ChildContextSnapshot[]
+  assistantResponseLogs  AssistantResponseLog[]
+  assistantEvaluations   AssistantEvaluation[]
 
   @@index([guardianId])
   @@index([deletedAt])
@@ -278,6 +283,7 @@ model AssistantConversation {
   guardian Guardian           @relation(fields: [guardianId], references: [id], onDelete: Cascade)
   child    Child?             @relation(fields: [childId], references: [id], onDelete: SetNull)
   messages AssistantMessage[]
+  responseLogs AssistantResponseLog[]
 
   @@index([guardianId, updatedAt])
   @@index([childId, updatedAt])
@@ -296,6 +302,167 @@ model AssistantMessage {
 
   @@index([conversationId, createdAt])
   @@map("assistant_messages")
+}
+
+model KnowledgeArticle {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  summary        String?
+  body           String
+  category       String
+  sourceLabel    String?  @map("source_label")
+  sourceUrl      String?  @map("source_url")
+  evidenceLevel  String?  @map("evidence_level")
+  language       String   @default("id-ID")
+  ageMinMonths   Int?     @map("age_min_months")
+  ageMaxMonths   Int?     @map("age_max_months")
+  conditionTags  Json?    @map("condition_tags")
+  focusAreaTags  Json?    @map("focus_area_tags")
+  safetyTags     Json?    @map("safety_tags")
+  reviewStatus   String   @default("approved") @map("review_status")
+  approvedBy     String?  @map("approved_by")
+  reviewedBy     String?  @map("reviewed_by")
+  reviewNotes    String?  @map("review_notes")
+  lastReviewedAt DateTime? @map("last_reviewed_at")
+  publishedAt    DateTime? @map("published_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  chunks KnowledgeChunk[]
+
+  @@index([category, reviewStatus])
+  @@index([publishedAt])
+  @@map("knowledge_articles")
+}
+
+model KnowledgeChunk {
+  id             String   @id @default(cuid())
+  articleId      String   @map("article_id")
+  chunkIndex     Int      @map("chunk_index")
+  heading        String?
+  chunkText      String   @map("chunk_text")
+  keywords       Json?
+  embedding      Json?
+  tokenCount     Int?     @map("token_count")
+  conditionTags  Json?    @map("condition_tags")
+  focusAreaTags  Json?    @map("focus_area_tags")
+  safetyTags     Json?    @map("safety_tags")
+  reviewStatus   String   @default("approved") @map("review_status")
+  reviewedBy     String?  @map("reviewed_by")
+  reviewNotes    String?  @map("review_notes")
+  lastReviewedAt DateTime? @map("last_reviewed_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  article KnowledgeArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, chunkIndex])
+  @@index([reviewStatus])
+  @@map("knowledge_chunks")
+}
+
+model AssistantPolicy {
+  id                  String   @id @default(cuid())
+  name                String   @unique
+  policyType          String   @map("policy_type")
+  content             String
+  priority            Int      @default(0)
+  appliesToIntentTags Json?    @map("applies_to_intent_tags")
+  active              Boolean  @default(true)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@index([policyType, active])
+  @@map("assistant_policies")
+}
+
+model ChildContextSnapshot {
+  id                  String   @id @default(cuid())
+  childId             String   @map("child_id")
+  snapshotType        String   @default("assistant") @map("snapshot_type")
+  summary             String
+  strengths           Json?
+  risks               Json?
+  activeFocusAreas    Json?    @map("active_focus_areas")
+  latestPatterns      Json?    @map("latest_patterns")
+  latestRoadmapTargets Json?   @map("latest_roadmap_targets")
+  latestInsightId     String?  @map("latest_insight_id")
+  progressCount       Int      @default(0) @map("progress_count")
+  roadmapCount        Int      @default(0) @map("roadmap_count")
+  progressWindowDays  Int      @default(14) @map("progress_window_days")
+  lastProgressAt      DateTime? @map("last_progress_at")
+  dataCompleteness    Json?    @map("data_completeness")
+  sourceDataHash      String   @map("source_data_hash")
+  version             Int      @default(1)
+  generatedBy         String?  @map("generated_by")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([childId, snapshotType, createdAt])
+  @@index([childId, sourceDataHash])
+  @@map("child_context_snapshots")
+}
+
+model AssistantResponseLog {
+  id                       String   @id @default(cuid())
+  guardianId               String   @map("guardian_id")
+  childId                  String?  @map("child_id")
+  conversationId           String?  @map("conversation_id")
+  question                 String
+  intent                   String
+  retrievedChildSnapshotIds Json?   @map("retrieved_child_snapshot_ids")
+  retrievedProgressEntryIds Json?   @map("retrieved_progress_entry_ids")
+  retrievedKnowledgeChunkIds Json?  @map("retrieved_knowledge_chunk_ids")
+  retrievedPolicyIds       Json?    @map("retrieved_policy_ids")
+  promptVersion            String?  @map("prompt_version")
+  modelName                String?  @map("model_name")
+  requestPayload           Json?    @map("request_payload")
+  responseText             String   @map("response_text")
+  responseJson             Json?    @map("response_json")
+  safetyOutcome            String?  @map("safety_outcome")
+  fallbackUsed             Boolean  @default(false) @map("fallback_used")
+  latencyMs                Int?     @map("latency_ms")
+  createdAt                DateTime @default(now()) @map("created_at")
+
+  guardian     Guardian               @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  child        Child?                 @relation(fields: [childId], references: [id], onDelete: SetNull)
+  conversation AssistantConversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  evaluations  AssistantEvaluation[]
+
+  @@index([guardianId, createdAt])
+  @@index([childId, createdAt])
+  @@index([conversationId, createdAt])
+  @@index([intent, createdAt])
+  @@map("assistant_response_logs")
+}
+
+model AssistantEvaluation {
+  id                 String   @id @default(cuid())
+  responseLogId      String   @map("response_log_id")
+  guardianId         String   @map("guardian_id")
+  childId            String?  @map("child_id")
+  evaluationVersion  String   @map("evaluation_version")
+  relevanceScore     Int      @map("relevance_score")
+  safetyScore        Int      @map("safety_score")
+  faithfulnessScore  Int      @map("faithfulness_score")
+  actionabilityScore Int      @map("actionability_score")
+  overallScore       Int      @map("overall_score")
+  issues             Json?
+  summary            String?
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  responseLog AssistantResponseLog @relation(fields: [responseLogId], references: [id], onDelete: Cascade)
+  guardian    Guardian             @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  child       Child?               @relation(fields: [childId], references: [id], onDelete: SetNull)
+
+  @@index([responseLogId, createdAt])
+  @@index([guardianId, createdAt])
+  @@index([childId, createdAt])
+  @@index([overallScore, createdAt])
+  @@map("assistant_evaluations")
 }
 
 model Provider {

@@ -3,6 +3,7 @@ import { FocusArea, RoadmapStatus } from "../generated/prisma/enums";
 import { markInsightsStaleForChild, scheduleInsightRefreshForChild } from "./insights";
 import { notFound } from "./api/errors";
 import { focusAreaLabels, type FocusAreaLabel } from "./children";
+import { selectCurriculumForChild } from "./curriculum";
 import { prisma } from "./prisma";
 
 const roadmapSelect = {
@@ -105,6 +106,9 @@ export type RoadmapResponseMeta = {
   personalizationSource: string | null;
   sourceInsightId: string | null;
   isDerivedFromLatestInsight: boolean;
+  hasMeaningfulProgress: boolean;
+  shouldUsePlaceholder: boolean;
+  isSeedOnly: boolean;
 };
 
 export type UpdateRoadmapItemInput = {
@@ -117,6 +121,10 @@ export type UpdateRoadmapItemInput = {
 type RoadmapSeedInput = {
   childId: string;
   focusAreas: FocusAreaLabel[];
+  condition?: string | null;
+  birthDate?: string | Date | null;
+  routine?: string | null;
+  supportNeed?: string | null;
 };
 
 function parseEvidence(value: unknown): string[] {
@@ -150,7 +158,7 @@ export function serializeRoadmapItem(item: RoadmapRecord): SerializedRoadmapItem
   };
 }
 
-const roadmapTemplates: Record<
+const fallbackRoadmapTemplates: Record<
   FocusAreaLabel,
   Array<{
     title: string;
@@ -211,28 +219,83 @@ const roadmapTemplates: Record<
 function buildSeedRoadmapItems(input: RoadmapSeedInput) {
   const areas = input.focusAreas.length > 0 ? input.focusAreas : focusAreaLabels.slice(0, 2);
 
-  return areas.flatMap((area, areaIndex) =>
-    roadmapTemplates[area].map((template, templateIndex) => {
-      const sortOrder = areaIndex * 10 + templateIndex;
-      const status =
-        sortOrder === 0
-          ? RoadmapStatus.IN_PROGRESS
-          : area === "Perilaku" && templateIndex === 0
-            ? RoadmapStatus.NEEDS_ATTENTION
-            : RoadmapStatus.NEXT_TARGET;
+  // Coba curriculum selector dulu (personalized by condition + age + routine).
+  const curriculumPicks = selectCurriculumForChild({
+    focusAreas: areas,
+    condition: input.condition ?? null,
+    birthDate: input.birthDate ?? null,
+    routine: input.routine ?? null,
+    supportNeed: input.supportNeed ?? null,
+  });
 
-      return {
+  // Kalau selector tidak menghasilkan apapun (edge case), fallback ke template generic.
+  const picks = curriculumPicks.length > 0
+    ? curriculumPicks.map((pick) => ({
+        area: pick.area,
+        title: pick.title,
+        detail: pick.detail,
+        evidence: pick.evidence,
+        reason: pick.reason,
+      }))
+    : areas.flatMap((area) =>
+        fallbackRoadmapTemplates[area].map((template) => ({
+          area,
+          title: template.title,
+          detail: template.detail,
+          evidence: template.evidence,
+          reason: "fallback generic",
+        })),
+      );
+
+  // Group per area untuk pengurutan + status assignment yang konsisten.
+  const byArea = new Map<FocusAreaLabel, typeof picks>();
+  picks.forEach((pick) => {
+    const bucket = byArea.get(pick.area) ?? [];
+    bucket.push(pick);
+    byArea.set(pick.area, bucket);
+  });
+
+  const result: Array<{
+    childId: string;
+    area: (typeof FocusArea)[keyof typeof FocusArea];
+    title: string;
+    detail: string | null;
+    status: (typeof RoadmapStatus)[keyof typeof RoadmapStatus];
+    evidence: string[];
+    confidenceScore: number;
+    sortOrder: number;
+    personalizationSource: string;
+    personalizationReason: string;
+  }> = [];
+
+  let globalOrder = 0;
+  areas.forEach((area, areaIndex) => {
+    const items = byArea.get(area) ?? [];
+    items.forEach((item, templateIndex) => {
+      const isFirstOverall = areaIndex === 0 && templateIndex === 0;
+      const status = isFirstOverall
+        ? RoadmapStatus.IN_PROGRESS
+        : area === "Perilaku" && templateIndex === 0
+          ? RoadmapStatus.NEEDS_ATTENTION
+          : RoadmapStatus.NEXT_TARGET;
+
+      result.push({
         childId: input.childId,
         area: focusAreaToEnumMap[area],
-        title: template.title,
-        detail: template.detail,
+        title: item.title,
+        detail: item.detail,
         status,
-        evidence: template.evidence,
+        evidence: item.evidence,
         confidenceScore: status === RoadmapStatus.IN_PROGRESS ? 0.72 : 0.58,
-        sortOrder,
-      };
-    }),
-  );
+        sortOrder: globalOrder,
+        personalizationSource: "curriculum_v1",
+        personalizationReason: item.reason,
+      });
+      globalOrder += 1;
+    });
+  });
+
+  return result;
 }
 
 export async function ensureInitialRoadmapForChild(input: RoadmapSeedInput) {
@@ -274,12 +337,18 @@ export async function listRoadmapItemsForChild(childId: string) {
 export function buildRoadmapMeta(
   items: SerializedRoadmapItem[],
   latestInsightId: string | null = null,
+  options?: {
+    hasMeaningfulProgress?: boolean;
+  },
 ): RoadmapResponseMeta {
   const latestPersonalizedItem = items
     .filter((item) => item.lastPersonalizedAt)
     .sort((left, right) =>
       (right.lastPersonalizedAt ?? "").localeCompare(left.lastPersonalizedAt ?? ""),
     )[0];
+
+  const hasMeaningfulProgress = options?.hasMeaningfulProgress ?? false;
+  const isSeedOnly = !hasMeaningfulProgress && items.length > 0;
 
   return {
     personalizedAt: latestPersonalizedItem?.lastPersonalizedAt ?? null,
@@ -289,6 +358,9 @@ export function buildRoadmapMeta(
       latestInsightId !== null &&
       latestPersonalizedItem?.sourceInsightId != null &&
       latestPersonalizedItem.sourceInsightId === latestInsightId,
+    hasMeaningfulProgress,
+    shouldUsePlaceholder: !hasMeaningfulProgress,
+    isSeedOnly,
   };
 }
 

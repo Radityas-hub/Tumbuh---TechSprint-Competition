@@ -109,6 +109,20 @@ type InsightSnapshot = {
   }>;
 };
 
+type EntryInsightSnapshot = {
+  childId: string;
+  childName: string;
+  progressEntryId: string;
+  area: FocusAreaLabel;
+  inputType: "Teks" | "Foto" | "Suara";
+  title: string | null;
+  note: string | null;
+  observedAt: string;
+  focusAreas: FocusAreaLabel[];
+  weeklyInsightSummary: string | null;
+  mediaSummary: string | null;
+};
+
 type InsightBuildResult = {
   childId: string;
   snapshot: InsightSnapshot;
@@ -116,7 +130,16 @@ type InsightBuildResult = {
   draft: GeneratedInsightDraft;
 };
 
+type EntryInsightBuildResult = {
+  childId: string;
+  progressEntryId: string;
+  snapshot: EntryInsightSnapshot;
+  sourceDataHash: string;
+  draft: GeneratedInsightDraft;
+};
+
 const insightPromptVersion = "insight-v2-persisted";
+const entryInsightPromptVersion = "entry-insight-v1";
 const insightPlaceholderSummary =
   "Insight sedang disusun dari catatan terbaru. Hasil ini tetap bersifat pendamping dan bukan diagnosis.";
 
@@ -251,6 +274,26 @@ function buildFallbackInsightPayload(draft: GeneratedInsightDraft): InsightGener
   };
 }
 
+function buildFallbackEntryInsightPayload(draft: GeneratedInsightDraft): InsightGenerationPayload {
+  const confidenceScore = Number(clamp(draft.confidenceScore, 0, 1).toFixed(2));
+
+  return {
+    summary: draft.summary,
+    alerts: draft.alerts,
+    recommendations: draft.recommendations,
+    confidenceScore,
+    generatedBy: "rule-based",
+    modelName: null,
+    promptVersion: entryInsightPromptVersion,
+    rawOutput: {
+      summary: draft.summary,
+      alerts: draft.alerts,
+      recommendations: draft.recommendations,
+      confidenceScore,
+    },
+  };
+}
+
 function getInsightLlmConfig() {
   const apiUrl = process.env.INSIGHT_LLM_API_URL?.trim();
   const apiKey = process.env.INSIGHT_LLM_API_KEY?.trim();
@@ -284,6 +327,40 @@ function buildInsightLlmMessages(snapshot: InsightSnapshot, draft: GeneratedInsi
           preserveEvidenceOnly: true,
           maxAlerts: 3,
           maxRecommendations: 3,
+        },
+        snapshot,
+        baselineDraft: {
+          summary: draft.summary,
+          alerts: draft.alerts,
+          recommendations: draft.recommendations,
+          confidenceScore: Number(draft.confidenceScore.toFixed(2)),
+        },
+      }),
+    },
+  ];
+}
+
+function buildEntryInsightLlmMessages(
+  snapshot: EntryInsightSnapshot,
+  draft: GeneratedInsightDraft,
+) {
+  return [
+    {
+      role: "system",
+      content:
+        "Anda membantu membuat insight singkat untuk satu catatan perkembangan anak. Gunakan hanya fakta dari input. Jangan memberi diagnosis, obat, atau menambah fakta baru. Balas hanya JSON dengan field summary, alerts, recommendations, confidenceScore.",
+    },
+    {
+      role: "user",
+      content: JSON.stringify({
+        task: "Buat insight singkat dan aman untuk satu entry timeline agar orang tua tahu apa yang bisa diamati berikutnya.",
+        rules: {
+          language: "id-ID",
+          nonDiagnostic: true,
+          preserveEvidenceOnly: true,
+          maxAlerts: 2,
+          maxRecommendations: 2,
+          concise: true,
         },
         snapshot,
         baselineDraft: {
@@ -379,6 +456,64 @@ async function generateInsightWithLlm(
   }
 }
 
+async function generateEntryInsightWithLlm(
+  snapshot: EntryInsightSnapshot,
+  draft: GeneratedInsightDraft,
+): Promise<InsightGenerationPayload> {
+  const config = getInsightLlmConfig();
+  if (!config) {
+    return buildFallbackEntryInsightPayload(draft);
+  }
+
+  try {
+    const response = await fetch(config.apiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: config.model,
+        temperature: 0.1,
+        response_format: {
+          type: "json_object",
+        },
+        messages: buildEntryInsightLlmMessages(snapshot, draft),
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Entry LLM request failed with status ${response.status}`);
+    }
+
+    const payload = (await response.json()) as unknown;
+    const content = parseChatCompletionContent(payload);
+
+    if (!content) {
+      throw new Error("Entry LLM response content is empty");
+    }
+
+    const parsed = llmInsightResponseSchema.parse(JSON.parse(content));
+    const confidenceScore = Number(
+      clamp(parsed.confidenceScore ?? draft.confidenceScore, 0, 1).toFixed(2),
+    );
+
+    return {
+      summary: parsed.summary,
+      alerts: parsed.alerts,
+      recommendations: parsed.recommendations,
+      confidenceScore,
+      generatedBy: "llm",
+      modelName: config.model,
+      promptVersion: entryInsightPromptVersion,
+      rawOutput: payload as Prisma.InputJsonValue,
+    };
+  } catch (error) {
+    console.error("Failed to generate entry insight with LLM, falling back to rule-based", error);
+    return buildFallbackEntryInsightPayload(draft);
+  }
+}
+
 function stableJsonStringify(value: unknown): string {
   if (value === null || typeof value !== "object") {
     return JSON.stringify(value);
@@ -397,7 +532,7 @@ function stableJsonStringify(value: unknown): string {
     .join(",")}}`;
 }
 
-function buildInsightSnapshotHash(snapshot: InsightSnapshot) {
+function buildInsightSnapshotHash(snapshot: InsightSnapshot | EntryInsightSnapshot) {
   return createHash("sha256").update(stableJsonStringify(snapshot)).digest("hex");
 }
 
@@ -549,14 +684,138 @@ async function buildInsightDraft(childId: string): Promise<InsightBuildResult> {
   };
 }
 
-export async function listInsightsForChild(childId: string) {
+async function buildEntryInsightDraft(progressEntryId: string): Promise<EntryInsightBuildResult> {
+  const entry = await prisma.progressEntry.findUniqueOrThrow({
+    where: {
+      id: progressEntryId,
+    },
+    select: {
+      id: true,
+      childId: true,
+      area: true,
+      inputType: true,
+      title: true,
+      note: true,
+      observedAt: true,
+      child: {
+        select: {
+          id: true,
+          name: true,
+          focusAreas: true,
+        },
+      },
+      mediaAssets: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        take: 1,
+        select: {
+          processedOutput: true,
+          status: true,
+        },
+      },
+    },
+  });
+
+  const weeklyInsight = await prisma.insight.findFirst({
+    where: {
+      childId: entry.childId,
+      kind: InsightKind.WEEKLY,
+      isActive: true,
+      status: "READY",
+    },
+    orderBy: [{ version: "desc" }, { createdAt: "desc" }],
+    select: {
+      summary: true,
+    },
+  });
+
+  const focusAreas = entry.child.focusAreas.map((area) => enumToFocusAreaMap[area]);
+  const firstMedia = entry.mediaAssets[0];
+  const mediaSummary =
+    firstMedia?.processedOutput &&
+    typeof firstMedia.processedOutput === "object" &&
+    !Array.isArray(firstMedia.processedOutput) &&
+    typeof (firstMedia.processedOutput as Record<string, unknown>).summary === "string"
+      ? ((firstMedia.processedOutput as Record<string, unknown>).summary as string)
+      : null;
+
+  const inputType =
+    entry.inputType === "TEXT"
+      ? "Teks"
+      : entry.inputType === "PHOTO"
+        ? "Foto"
+        : "Suara";
+
+  const area = enumToFocusAreaMap[entry.area];
+  const snapshot: EntryInsightSnapshot = {
+    childId: entry.child.id,
+    childName: entry.child.name,
+    progressEntryId: entry.id,
+    area,
+    inputType,
+    title: entry.title,
+    note: entry.note,
+    observedAt: entry.observedAt.toISOString(),
+    focusAreas,
+    weeklyInsightSummary: weeklyInsight?.summary ?? null,
+    mediaSummary,
+  };
+
+  const sourceDataHash = buildInsightSnapshotHash(snapshot);
+  const summary =
+    inputType === "Foto"
+      ? `Observasi visual di area ${area.toLowerCase()} sudah tersimpan untuk ${entry.child.name}. Catatan berikutnya bisa fokus pada konteks sebelum dan sesudah kejadian agar polanya lebih jelas.`
+      : inputType === "Suara"
+        ? `Voice note area ${area.toLowerCase()} sudah masuk ke timeline ${entry.child.name}. Gunakan catatan berikutnya untuk menegaskan pemicu, respons anak, dan apa yang membantu.`
+        : `Catatan area ${area.toLowerCase()} ini menambah bukti harian untuk ${entry.child.name}. Observasi berikutnya bisa menyorot pemicu, respons, dan perubahan setelah intervensi ringan.`;
+
+  const alerts = [
+    area === "Perilaku"
+      ? "Perhatikan apakah pola ini sering muncul pada situasi transisi atau perubahan rutinitas."
+      : `Catatan ini belum cukup untuk menarik kesimpulan besar, jadi lanjutkan observasi di area ${area.toLowerCase()}.`,
+  ];
+
+  const recommendations = [
+    `Catat konteks sebelum observasi ${area.toLowerCase()} berikutnya agar pola lebih mudah dibandingkan.`,
+    weeklyInsight?.summary
+      ? "Bandingkan observasi ini dengan insight mingguan agar tahu apakah polanya konsisten."
+      : "Tambahkan satu observasi lanjutan dalam 1-2 hari agar backend punya pembanding yang lebih kuat.",
+  ];
+
+  return {
+    childId: entry.childId,
+    progressEntryId: entry.id,
+    snapshot,
+    sourceDataHash,
+    draft: {
+      summary,
+      alerts,
+      recommendations,
+      confidenceScore: inputType === "Teks" ? 0.62 : 0.68,
+      rangeStart: entry.observedAt,
+      rangeEnd: entry.observedAt,
+    },
+  };
+}
+
+export async function listInsightsForChild(
+  childId: string,
+  options?: {
+    kind?: keyof typeof InsightKind;
+    activeOnly?: boolean;
+    limit?: number;
+  },
+) {
   const insights = await prisma.insight.findMany({
     where: {
       childId,
+      ...(options?.kind ? { kind: options.kind } : {}),
+      ...(options?.activeOnly ? { isActive: true } : {}),
     },
     orderBy: [{ isActive: "desc" }, { version: "desc" }, { createdAt: "desc" }],
     select: insightSelect,
-    take: 10,
+    take: options?.limit ?? 10,
   });
 
   return insights.map(serializeInsight);
@@ -566,6 +825,7 @@ export async function getLatestInsightForChild(childId: string) {
   const insight = await prisma.insight.findFirst({
     where: {
       childId,
+      kind: InsightKind.WEEKLY,
       isActive: true,
     },
     orderBy: [{ version: "desc" }, { createdAt: "desc" }],
@@ -578,7 +838,7 @@ export async function getLatestInsightForChild(childId: string) {
 export async function getInsightStateForChild(childId: string): Promise<InsightListState> {
   const [latest, insights] = await Promise.all([
     getLatestInsightForChild(childId),
-    listInsightsForChild(childId),
+    listInsightsForChild(childId, { kind: InsightKind.WEEKLY }),
   ]);
 
   return {
@@ -614,6 +874,7 @@ export async function markInsightsStaleForChild(childId: string) {
   await prisma.insight.updateMany({
     where: {
       childId,
+      kind: InsightKind.WEEKLY,
       isActive: true,
       status: {
         not: "ARCHIVED",
@@ -853,6 +1114,155 @@ export async function generateInsightForChild(childId: string) {
   });
 
   return serializedInsight;
+}
+
+async function getLatestEntryInsightVersion(progressEntryId: string) {
+  const latestVersionRecord = await prisma.insight.findFirst({
+    where: {
+      progressEntryId,
+      kind: InsightKind.ENTRY,
+    },
+    orderBy: [{ version: "desc" }, { createdAt: "desc" }],
+    select: {
+      version: true,
+    },
+  });
+
+  return latestVersionRecord?.version ?? 0;
+}
+
+export async function archiveEntryInsightsForProgressEntry(progressEntryId: string) {
+  await prisma.insight.updateMany({
+    where: {
+      progressEntryId,
+      kind: InsightKind.ENTRY,
+      isActive: true,
+    },
+    data: {
+      isActive: false,
+      status: "ARCHIVED",
+    },
+  });
+}
+
+export async function generateEntryInsightForProgressEntry(progressEntryId: string) {
+  const { childId, draft, progressEntryId: entryId, snapshot, sourceDataHash } =
+    await buildEntryInsightDraft(progressEntryId);
+  const generatedPayload = await generateEntryInsightWithLlm(snapshot, draft);
+
+  const existingInsight = await prisma.insight.findFirst({
+    where: {
+      progressEntryId: entryId,
+      kind: InsightKind.ENTRY,
+      sourceDataHash,
+    },
+    orderBy: [{ version: "desc" }, { createdAt: "desc" }],
+    select: insightSelect,
+  });
+
+  if (existingInsight) {
+    await prisma.insight.updateMany({
+      where: {
+        progressEntryId: entryId,
+        kind: InsightKind.ENTRY,
+        isActive: true,
+        id: {
+          not: existingInsight.id,
+        },
+      },
+      data: {
+        isActive: false,
+        status: "ARCHIVED",
+      },
+    });
+
+    const refreshedInsight = await prisma.insight.update({
+      where: {
+        id: existingInsight.id,
+      },
+      data: {
+        summary: generatedPayload.summary,
+        alerts: generatedPayload.alerts,
+        recommendations: generatedPayload.recommendations,
+        confidenceScore: generatedPayload.confidenceScore,
+        rangeStart: draft.rangeStart,
+        rangeEnd: draft.rangeEnd,
+        generatedBy: generatedPayload.generatedBy,
+        modelName: generatedPayload.modelName,
+        promptVersion: generatedPayload.promptVersion,
+        rawInput: snapshot,
+        rawOutput: generatedPayload.rawOutput,
+        isActive: true,
+        status: "READY",
+        staleAt: null,
+        generatedAt: existingInsight.generatedAt ?? new Date(),
+      },
+      select: insightSelect,
+    });
+
+    await prisma.progressEntry.update({
+      where: {
+        id: entryId,
+      },
+      data: {
+        insight: generatedPayload.summary,
+      },
+    });
+
+    return serializeInsight(refreshedInsight);
+  }
+
+  const latestVersion = await getLatestEntryInsightVersion(entryId);
+
+  await prisma.insight.updateMany({
+    where: {
+      progressEntryId: entryId,
+      kind: InsightKind.ENTRY,
+      isActive: true,
+    },
+    data: {
+      isActive: false,
+      status: "ARCHIVED",
+    },
+  });
+
+  const now = new Date();
+  const insight = await prisma.insight.create({
+    data: {
+      childId,
+      progressEntryId: entryId,
+      kind: InsightKind.ENTRY,
+      summary: generatedPayload.summary,
+      alerts: generatedPayload.alerts,
+      recommendations: generatedPayload.recommendations,
+      confidenceScore: generatedPayload.confidenceScore,
+      rangeStart: draft.rangeStart,
+      rangeEnd: draft.rangeEnd,
+      generatedBy: generatedPayload.generatedBy,
+      sourceDataHash,
+      status: "READY",
+      version: latestVersion + 1,
+      modelName: generatedPayload.modelName,
+      promptVersion: generatedPayload.promptVersion,
+      rawInput: snapshot,
+      rawOutput: generatedPayload.rawOutput,
+      isActive: true,
+      staleAt: null,
+      generatedAt: now,
+    },
+    select: insightSelect,
+  });
+
+  await prisma.progressEntry.update({
+    where: {
+      id: entryId,
+    },
+    data: {
+      insight: generatedPayload.summary,
+    },
+  });
+
+  return serializeInsight(insight);
 }
 
 export async function getLatestOrGeneratedInsightForChild(childId: string) {

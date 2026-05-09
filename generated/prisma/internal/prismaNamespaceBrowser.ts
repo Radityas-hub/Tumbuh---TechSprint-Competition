@@ -62,6 +62,12 @@ export const ModelName = {
   Article: 'Article',
   AssistantConversation: 'AssistantConversation',
   AssistantMessage: 'AssistantMessage',
+  KnowledgeArticle: 'KnowledgeArticle',
+  KnowledgeChunk: 'KnowledgeChunk',
+  AssistantPolicy: 'AssistantPolicy',
+  ChildContextSnapshot: 'ChildContextSnapshot',
+  AssistantResponseLog: 'AssistantResponseLog',
+  AssistantEvaluation: 'AssistantEvaluation',
   Provider: 'Provider',
   ProcessingJob: 'ProcessingJob'
 } as const
@@ -269,6 +275,143 @@ export const AssistantMessageScalarFieldEnum = {
 } as const
 
 export type AssistantMessageScalarFieldEnum = (typeof AssistantMessageScalarFieldEnum)[keyof typeof AssistantMessageScalarFieldEnum]
+
+
+export const KnowledgeArticleScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  title: 'title',
+  summary: 'summary',
+  body: 'body',
+  category: 'category',
+  sourceLabel: 'sourceLabel',
+  sourceUrl: 'sourceUrl',
+  evidenceLevel: 'evidenceLevel',
+  language: 'language',
+  ageMinMonths: 'ageMinMonths',
+  ageMaxMonths: 'ageMaxMonths',
+  conditionTags: 'conditionTags',
+  focusAreaTags: 'focusAreaTags',
+  safetyTags: 'safetyTags',
+  reviewStatus: 'reviewStatus',
+  approvedBy: 'approvedBy',
+  reviewedBy: 'reviewedBy',
+  reviewNotes: 'reviewNotes',
+  lastReviewedAt: 'lastReviewedAt',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type KnowledgeArticleScalarFieldEnum = (typeof KnowledgeArticleScalarFieldEnum)[keyof typeof KnowledgeArticleScalarFieldEnum]
+
+
+export const KnowledgeChunkScalarFieldEnum = {
+  id: 'id',
+  articleId: 'articleId',
+  chunkIndex: 'chunkIndex',
+  heading: 'heading',
+  chunkText: 'chunkText',
+  keywords: 'keywords',
+  embedding: 'embedding',
+  tokenCount: 'tokenCount',
+  conditionTags: 'conditionTags',
+  focusAreaTags: 'focusAreaTags',
+  safetyTags: 'safetyTags',
+  reviewStatus: 'reviewStatus',
+  reviewedBy: 'reviewedBy',
+  reviewNotes: 'reviewNotes',
+  lastReviewedAt: 'lastReviewedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type KnowledgeChunkScalarFieldEnum = (typeof KnowledgeChunkScalarFieldEnum)[keyof typeof KnowledgeChunkScalarFieldEnum]
+
+
+export const AssistantPolicyScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  policyType: 'policyType',
+  content: 'content',
+  priority: 'priority',
+  appliesToIntentTags: 'appliesToIntentTags',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AssistantPolicyScalarFieldEnum = (typeof AssistantPolicyScalarFieldEnum)[keyof typeof AssistantPolicyScalarFieldEnum]
+
+
+export const ChildContextSnapshotScalarFieldEnum = {
+  id: 'id',
+  childId: 'childId',
+  snapshotType: 'snapshotType',
+  summary: 'summary',
+  strengths: 'strengths',
+  risks: 'risks',
+  activeFocusAreas: 'activeFocusAreas',
+  latestPatterns: 'latestPatterns',
+  latestRoadmapTargets: 'latestRoadmapTargets',
+  latestInsightId: 'latestInsightId',
+  progressCount: 'progressCount',
+  roadmapCount: 'roadmapCount',
+  progressWindowDays: 'progressWindowDays',
+  lastProgressAt: 'lastProgressAt',
+  dataCompleteness: 'dataCompleteness',
+  sourceDataHash: 'sourceDataHash',
+  version: 'version',
+  generatedBy: 'generatedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ChildContextSnapshotScalarFieldEnum = (typeof ChildContextSnapshotScalarFieldEnum)[keyof typeof ChildContextSnapshotScalarFieldEnum]
+
+
+export const AssistantResponseLogScalarFieldEnum = {
+  id: 'id',
+  guardianId: 'guardianId',
+  childId: 'childId',
+  conversationId: 'conversationId',
+  question: 'question',
+  intent: 'intent',
+  retrievedChildSnapshotIds: 'retrievedChildSnapshotIds',
+  retrievedProgressEntryIds: 'retrievedProgressEntryIds',
+  retrievedKnowledgeChunkIds: 'retrievedKnowledgeChunkIds',
+  retrievedPolicyIds: 'retrievedPolicyIds',
+  promptVersion: 'promptVersion',
+  modelName: 'modelName',
+  requestPayload: 'requestPayload',
+  responseText: 'responseText',
+  responseJson: 'responseJson',
+  safetyOutcome: 'safetyOutcome',
+  fallbackUsed: 'fallbackUsed',
+  latencyMs: 'latencyMs',
+  createdAt: 'createdAt'
+} as const
+
+export type AssistantResponseLogScalarFieldEnum = (typeof AssistantResponseLogScalarFieldEnum)[keyof typeof AssistantResponseLogScalarFieldEnum]
+
+
+export const AssistantEvaluationScalarFieldEnum = {
+  id: 'id',
+  responseLogId: 'responseLogId',
+  guardianId: 'guardianId',
+  childId: 'childId',
+  evaluationVersion: 'evaluationVersion',
+  relevanceScore: 'relevanceScore',
+  safetyScore: 'safetyScore',
+  faithfulnessScore: 'faithfulnessScore',
+  actionabilityScore: 'actionabilityScore',
+  overallScore: 'overallScore',
+  issues: 'issues',
+  summary: 'summary',
+  createdAt: 'createdAt'
+} as const
+
+export type AssistantEvaluationScalarFieldEnum = (typeof AssistantEvaluationScalarFieldEnum)[keyof typeof AssistantEvaluationScalarFieldEnum]
 
 
 export const ProviderScalarFieldEnum = {

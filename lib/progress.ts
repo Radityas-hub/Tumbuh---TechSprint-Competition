@@ -7,7 +7,12 @@ import {
   linkMediaAssetToProgressEntry,
   type SerializedMediaAsset,
 } from "./media";
-import { markInsightsStaleForChild, scheduleInsightRefreshForChild } from "./insights";
+import {
+  archiveEntryInsightsForProgressEntry,
+  generateEntryInsightForProgressEntry,
+  markInsightsStaleForChild,
+  scheduleInsightRefreshForChild,
+} from "./insights";
 import { prisma } from "./prisma";
 
 export const progressInputTypeLabels = ["Teks", "Foto", "Suara"] as const;
@@ -327,6 +332,7 @@ export async function createProgressEntryForChild(childId: string, input: Create
   }
 
   await markInsightsStaleForChild(childId);
+  await generateEntryInsightForProgressEntry(entry.id);
   await scheduleInsightRefreshForChild(childId);
 
   const refreshedEntry = await prisma.progressEntry.findUniqueOrThrow({
@@ -381,9 +387,17 @@ export async function updateOwnedProgressEntry(
   });
 
   await markInsightsStaleForChild(existingEntry.childId);
+  await generateEntryInsightForProgressEntry(entry.id);
   await scheduleInsightRefreshForChild(existingEntry.childId);
 
-  return serializeProgressEntry(entry);
+  const refreshedEntry = await prisma.progressEntry.findUniqueOrThrow({
+    where: {
+      id: entry.id,
+    },
+    select: progressSelect,
+  });
+
+  return serializeProgressEntry(refreshedEntry);
 }
 
 export async function deleteOwnedProgressEntry(guardianId: string, entryId: string) {
@@ -399,6 +413,7 @@ export async function deleteOwnedProgressEntry(guardianId: string, entryId: stri
   });
 
   await markInsightsStaleForChild(entry.childId);
+  await archiveEntryInsightsForProgressEntry(entryId);
   await scheduleInsightRefreshForChild(entry.childId);
 
   return serializeProgressEntry(entry);

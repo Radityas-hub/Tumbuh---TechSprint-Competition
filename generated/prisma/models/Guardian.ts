@@ -201,6 +201,8 @@ export type GuardianWhereInput = {
   children?: Prisma.ChildListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   assistantConversations?: Prisma.AssistantConversationListRelationFilter
+  assistantResponseLogs?: Prisma.AssistantResponseLogListRelationFilter
+  assistantEvaluations?: Prisma.AssistantEvaluationListRelationFilter
 }
 
 export type GuardianOrderByWithRelationInput = {
@@ -214,6 +216,8 @@ export type GuardianOrderByWithRelationInput = {
   children?: Prisma.ChildOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
   assistantConversations?: Prisma.AssistantConversationOrderByRelationAggregateInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogOrderByRelationAggregateInput
+  assistantEvaluations?: Prisma.AssistantEvaluationOrderByRelationAggregateInput
 }
 
 export type GuardianWhereUniqueInput = Prisma.AtLeast<{
@@ -230,6 +234,8 @@ export type GuardianWhereUniqueInput = Prisma.AtLeast<{
   children?: Prisma.ChildListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   assistantConversations?: Prisma.AssistantConversationListRelationFilter
+  assistantResponseLogs?: Prisma.AssistantResponseLogListRelationFilter
+  assistantEvaluations?: Prisma.AssistantEvaluationListRelationFilter
 }, "id" | "authUserId" | "email">
 
 export type GuardianOrderByWithAggregationInput = {
@@ -269,6 +275,8 @@ export type GuardianCreateInput = {
   children?: Prisma.ChildCreateNestedManyWithoutGuardianInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutGuardianInput
   assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutGuardianInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutGuardianInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutGuardianInput
 }
 
 export type GuardianUncheckedCreateInput = {
@@ -282,6 +290,8 @@ export type GuardianUncheckedCreateInput = {
   children?: Prisma.ChildUncheckedCreateNestedManyWithoutGuardianInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutGuardianInput
   assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutGuardianInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutGuardianInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutGuardianInput
 }
 
 export type GuardianUpdateInput = {
@@ -295,6 +305,8 @@ export type GuardianUpdateInput = {
   children?: Prisma.ChildUpdateManyWithoutGuardianNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutGuardianNestedInput
   assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutGuardianNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutGuardianNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutGuardianNestedInput
 }
 
 export type GuardianUncheckedUpdateInput = {
@@ -308,6 +320,8 @@ export type GuardianUncheckedUpdateInput = {
   children?: Prisma.ChildUncheckedUpdateManyWithoutGuardianNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutGuardianNestedInput
   assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutGuardianNestedInput
 }
 
 export type GuardianCreateManyInput = {
@@ -440,6 +454,34 @@ export type GuardianUpdateOneRequiredWithoutAssistantConversationsNestedInput = 
   update?: Prisma.XOR<Prisma.XOR<Prisma.GuardianUpdateToOneWithWhereWithoutAssistantConversationsInput, Prisma.GuardianUpdateWithoutAssistantConversationsInput>, Prisma.GuardianUncheckedUpdateWithoutAssistantConversationsInput>
 }
 
+export type GuardianCreateNestedOneWithoutAssistantResponseLogsInput = {
+  create?: Prisma.XOR<Prisma.GuardianCreateWithoutAssistantResponseLogsInput, Prisma.GuardianUncheckedCreateWithoutAssistantResponseLogsInput>
+  connectOrCreate?: Prisma.GuardianCreateOrConnectWithoutAssistantResponseLogsInput
+  connect?: Prisma.GuardianWhereUniqueInput
+}
+
+export type GuardianUpdateOneRequiredWithoutAssistantResponseLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.GuardianCreateWithoutAssistantResponseLogsInput, Prisma.GuardianUncheckedCreateWithoutAssistantResponseLogsInput>
+  connectOrCreate?: Prisma.GuardianCreateOrConnectWithoutAssistantResponseLogsInput
+  upsert?: Prisma.GuardianUpsertWithoutAssistantResponseLogsInput
+  connect?: Prisma.GuardianWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.GuardianUpdateToOneWithWhereWithoutAssistantResponseLogsInput, Prisma.GuardianUpdateWithoutAssistantResponseLogsInput>, Prisma.GuardianUncheckedUpdateWithoutAssistantResponseLogsInput>
+}
+
+export type GuardianCreateNestedOneWithoutAssistantEvaluationsInput = {
+  create?: Prisma.XOR<Prisma.GuardianCreateWithoutAssistantEvaluationsInput, Prisma.GuardianUncheckedCreateWithoutAssistantEvaluationsInput>
+  connectOrCreate?: Prisma.GuardianCreateOrConnectWithoutAssistantEvaluationsInput
+  connect?: Prisma.GuardianWhereUniqueInput
+}
+
+export type GuardianUpdateOneRequiredWithoutAssistantEvaluationsNestedInput = {
+  create?: Prisma.XOR<Prisma.GuardianCreateWithoutAssistantEvaluationsInput, Prisma.GuardianUncheckedCreateWithoutAssistantEvaluationsInput>
+  connectOrCreate?: Prisma.GuardianCreateOrConnectWithoutAssistantEvaluationsInput
+  upsert?: Prisma.GuardianUpsertWithoutAssistantEvaluationsInput
+  connect?: Prisma.GuardianWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.GuardianUpdateToOneWithWhereWithoutAssistantEvaluationsInput, Prisma.GuardianUpdateWithoutAssistantEvaluationsInput>, Prisma.GuardianUncheckedUpdateWithoutAssistantEvaluationsInput>
+}
+
 export type GuardianCreateWithoutChildrenInput = {
   id?: string
   authUserId: string
@@ -450,6 +492,8 @@ export type GuardianCreateWithoutChildrenInput = {
   deletedAt?: Date | string | null
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutGuardianInput
   assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutGuardianInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutGuardianInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutGuardianInput
 }
 
 export type GuardianUncheckedCreateWithoutChildrenInput = {
@@ -462,6 +506,8 @@ export type GuardianUncheckedCreateWithoutChildrenInput = {
   deletedAt?: Date | string | null
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutGuardianInput
   assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutGuardianInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutGuardianInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutGuardianInput
 }
 
 export type GuardianCreateOrConnectWithoutChildrenInput = {
@@ -490,6 +536,8 @@ export type GuardianUpdateWithoutChildrenInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   auditLogs?: Prisma.AuditLogUpdateManyWithoutGuardianNestedInput
   assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutGuardianNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutGuardianNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutGuardianNestedInput
 }
 
 export type GuardianUncheckedUpdateWithoutChildrenInput = {
@@ -502,6 +550,8 @@ export type GuardianUncheckedUpdateWithoutChildrenInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutGuardianNestedInput
   assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutGuardianNestedInput
 }
 
 export type GuardianCreateWithoutAuditLogsInput = {
@@ -514,6 +564,8 @@ export type GuardianCreateWithoutAuditLogsInput = {
   deletedAt?: Date | string | null
   children?: Prisma.ChildCreateNestedManyWithoutGuardianInput
   assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutGuardianInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutGuardianInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutGuardianInput
 }
 
 export type GuardianUncheckedCreateWithoutAuditLogsInput = {
@@ -526,6 +578,8 @@ export type GuardianUncheckedCreateWithoutAuditLogsInput = {
   deletedAt?: Date | string | null
   children?: Prisma.ChildUncheckedCreateNestedManyWithoutGuardianInput
   assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutGuardianInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutGuardianInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutGuardianInput
 }
 
 export type GuardianCreateOrConnectWithoutAuditLogsInput = {
@@ -554,6 +608,8 @@ export type GuardianUpdateWithoutAuditLogsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   children?: Prisma.ChildUpdateManyWithoutGuardianNestedInput
   assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutGuardianNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutGuardianNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutGuardianNestedInput
 }
 
 export type GuardianUncheckedUpdateWithoutAuditLogsInput = {
@@ -566,6 +622,8 @@ export type GuardianUncheckedUpdateWithoutAuditLogsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   children?: Prisma.ChildUncheckedUpdateManyWithoutGuardianNestedInput
   assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutGuardianNestedInput
 }
 
 export type GuardianCreateWithoutAssistantConversationsInput = {
@@ -578,6 +636,8 @@ export type GuardianCreateWithoutAssistantConversationsInput = {
   deletedAt?: Date | string | null
   children?: Prisma.ChildCreateNestedManyWithoutGuardianInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutGuardianInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutGuardianInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutGuardianInput
 }
 
 export type GuardianUncheckedCreateWithoutAssistantConversationsInput = {
@@ -590,6 +650,8 @@ export type GuardianUncheckedCreateWithoutAssistantConversationsInput = {
   deletedAt?: Date | string | null
   children?: Prisma.ChildUncheckedCreateNestedManyWithoutGuardianInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutGuardianInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutGuardianInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutGuardianInput
 }
 
 export type GuardianCreateOrConnectWithoutAssistantConversationsInput = {
@@ -618,6 +680,8 @@ export type GuardianUpdateWithoutAssistantConversationsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   children?: Prisma.ChildUpdateManyWithoutGuardianNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutGuardianNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutGuardianNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutGuardianNestedInput
 }
 
 export type GuardianUncheckedUpdateWithoutAssistantConversationsInput = {
@@ -630,6 +694,152 @@ export type GuardianUncheckedUpdateWithoutAssistantConversationsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   children?: Prisma.ChildUncheckedUpdateManyWithoutGuardianNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutGuardianNestedInput
+}
+
+export type GuardianCreateWithoutAssistantResponseLogsInput = {
+  id?: string
+  authUserId: string
+  email: string
+  displayName?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  children?: Prisma.ChildCreateNestedManyWithoutGuardianInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutGuardianInput
+  assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutGuardianInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutGuardianInput
+}
+
+export type GuardianUncheckedCreateWithoutAssistantResponseLogsInput = {
+  id?: string
+  authUserId: string
+  email: string
+  displayName?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  children?: Prisma.ChildUncheckedCreateNestedManyWithoutGuardianInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutGuardianInput
+  assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutGuardianInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutGuardianInput
+}
+
+export type GuardianCreateOrConnectWithoutAssistantResponseLogsInput = {
+  where: Prisma.GuardianWhereUniqueInput
+  create: Prisma.XOR<Prisma.GuardianCreateWithoutAssistantResponseLogsInput, Prisma.GuardianUncheckedCreateWithoutAssistantResponseLogsInput>
+}
+
+export type GuardianUpsertWithoutAssistantResponseLogsInput = {
+  update: Prisma.XOR<Prisma.GuardianUpdateWithoutAssistantResponseLogsInput, Prisma.GuardianUncheckedUpdateWithoutAssistantResponseLogsInput>
+  create: Prisma.XOR<Prisma.GuardianCreateWithoutAssistantResponseLogsInput, Prisma.GuardianUncheckedCreateWithoutAssistantResponseLogsInput>
+  where?: Prisma.GuardianWhereInput
+}
+
+export type GuardianUpdateToOneWithWhereWithoutAssistantResponseLogsInput = {
+  where?: Prisma.GuardianWhereInput
+  data: Prisma.XOR<Prisma.GuardianUpdateWithoutAssistantResponseLogsInput, Prisma.GuardianUncheckedUpdateWithoutAssistantResponseLogsInput>
+}
+
+export type GuardianUpdateWithoutAssistantResponseLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  authUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  children?: Prisma.ChildUpdateManyWithoutGuardianNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutGuardianNestedInput
+  assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutGuardianNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutGuardianNestedInput
+}
+
+export type GuardianUncheckedUpdateWithoutAssistantResponseLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  authUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  children?: Prisma.ChildUncheckedUpdateManyWithoutGuardianNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutGuardianNestedInput
+}
+
+export type GuardianCreateWithoutAssistantEvaluationsInput = {
+  id?: string
+  authUserId: string
+  email: string
+  displayName?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  children?: Prisma.ChildCreateNestedManyWithoutGuardianInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutGuardianInput
+  assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutGuardianInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutGuardianInput
+}
+
+export type GuardianUncheckedCreateWithoutAssistantEvaluationsInput = {
+  id?: string
+  authUserId: string
+  email: string
+  displayName?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  children?: Prisma.ChildUncheckedCreateNestedManyWithoutGuardianInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutGuardianInput
+  assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutGuardianInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutGuardianInput
+}
+
+export type GuardianCreateOrConnectWithoutAssistantEvaluationsInput = {
+  where: Prisma.GuardianWhereUniqueInput
+  create: Prisma.XOR<Prisma.GuardianCreateWithoutAssistantEvaluationsInput, Prisma.GuardianUncheckedCreateWithoutAssistantEvaluationsInput>
+}
+
+export type GuardianUpsertWithoutAssistantEvaluationsInput = {
+  update: Prisma.XOR<Prisma.GuardianUpdateWithoutAssistantEvaluationsInput, Prisma.GuardianUncheckedUpdateWithoutAssistantEvaluationsInput>
+  create: Prisma.XOR<Prisma.GuardianCreateWithoutAssistantEvaluationsInput, Prisma.GuardianUncheckedCreateWithoutAssistantEvaluationsInput>
+  where?: Prisma.GuardianWhereInput
+}
+
+export type GuardianUpdateToOneWithWhereWithoutAssistantEvaluationsInput = {
+  where?: Prisma.GuardianWhereInput
+  data: Prisma.XOR<Prisma.GuardianUpdateWithoutAssistantEvaluationsInput, Prisma.GuardianUncheckedUpdateWithoutAssistantEvaluationsInput>
+}
+
+export type GuardianUpdateWithoutAssistantEvaluationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  authUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  children?: Prisma.ChildUpdateManyWithoutGuardianNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutGuardianNestedInput
+  assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutGuardianNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutGuardianNestedInput
+}
+
+export type GuardianUncheckedUpdateWithoutAssistantEvaluationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  authUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  children?: Prisma.ChildUncheckedUpdateManyWithoutGuardianNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutGuardianNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutGuardianNestedInput
 }
 
 
@@ -641,12 +851,16 @@ export type GuardianCountOutputType = {
   children: number
   auditLogs: number
   assistantConversations: number
+  assistantResponseLogs: number
+  assistantEvaluations: number
 }
 
 export type GuardianCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   children?: boolean | GuardianCountOutputTypeCountChildrenArgs
   auditLogs?: boolean | GuardianCountOutputTypeCountAuditLogsArgs
   assistantConversations?: boolean | GuardianCountOutputTypeCountAssistantConversationsArgs
+  assistantResponseLogs?: boolean | GuardianCountOutputTypeCountAssistantResponseLogsArgs
+  assistantEvaluations?: boolean | GuardianCountOutputTypeCountAssistantEvaluationsArgs
 }
 
 /**
@@ -680,6 +894,20 @@ export type GuardianCountOutputTypeCountAssistantConversationsArgs<ExtArgs exten
   where?: Prisma.AssistantConversationWhereInput
 }
 
+/**
+ * GuardianCountOutputType without action
+ */
+export type GuardianCountOutputTypeCountAssistantResponseLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AssistantResponseLogWhereInput
+}
+
+/**
+ * GuardianCountOutputType without action
+ */
+export type GuardianCountOutputTypeCountAssistantEvaluationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AssistantEvaluationWhereInput
+}
+
 
 export type GuardianSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -692,6 +920,8 @@ export type GuardianSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   children?: boolean | Prisma.Guardian$childrenArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Guardian$auditLogsArgs<ExtArgs>
   assistantConversations?: boolean | Prisma.Guardian$assistantConversationsArgs<ExtArgs>
+  assistantResponseLogs?: boolean | Prisma.Guardian$assistantResponseLogsArgs<ExtArgs>
+  assistantEvaluations?: boolean | Prisma.Guardian$assistantEvaluationsArgs<ExtArgs>
   _count?: boolean | Prisma.GuardianCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["guardian"]>
 
@@ -730,6 +960,8 @@ export type GuardianInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   children?: boolean | Prisma.Guardian$childrenArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Guardian$auditLogsArgs<ExtArgs>
   assistantConversations?: boolean | Prisma.Guardian$assistantConversationsArgs<ExtArgs>
+  assistantResponseLogs?: boolean | Prisma.Guardian$assistantResponseLogsArgs<ExtArgs>
+  assistantEvaluations?: boolean | Prisma.Guardian$assistantEvaluationsArgs<ExtArgs>
   _count?: boolean | Prisma.GuardianCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type GuardianIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -741,6 +973,8 @@ export type $GuardianPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     children: Prisma.$ChildPayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
     assistantConversations: Prisma.$AssistantConversationPayload<ExtArgs>[]
+    assistantResponseLogs: Prisma.$AssistantResponseLogPayload<ExtArgs>[]
+    assistantEvaluations: Prisma.$AssistantEvaluationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1147,6 +1381,8 @@ export interface Prisma__GuardianClient<T, Null = never, ExtArgs extends runtime
   children<T extends Prisma.Guardian$childrenArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guardian$childrenArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChildPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.Guardian$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guardian$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assistantConversations<T extends Prisma.Guardian$assistantConversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guardian$assistantConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assistantResponseLogs<T extends Prisma.Guardian$assistantResponseLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guardian$assistantResponseLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AssistantResponseLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assistantEvaluations<T extends Prisma.Guardian$assistantEvaluationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guardian$assistantEvaluationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AssistantEvaluationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1645,6 +1881,54 @@ export type Guardian$assistantConversationsArgs<ExtArgs extends runtime.Types.Ex
   take?: number
   skip?: number
   distinct?: Prisma.AssistantConversationScalarFieldEnum | Prisma.AssistantConversationScalarFieldEnum[]
+}
+
+/**
+ * Guardian.assistantResponseLogs
+ */
+export type Guardian$assistantResponseLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AssistantResponseLog
+   */
+  select?: Prisma.AssistantResponseLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AssistantResponseLog
+   */
+  omit?: Prisma.AssistantResponseLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AssistantResponseLogInclude<ExtArgs> | null
+  where?: Prisma.AssistantResponseLogWhereInput
+  orderBy?: Prisma.AssistantResponseLogOrderByWithRelationInput | Prisma.AssistantResponseLogOrderByWithRelationInput[]
+  cursor?: Prisma.AssistantResponseLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AssistantResponseLogScalarFieldEnum | Prisma.AssistantResponseLogScalarFieldEnum[]
+}
+
+/**
+ * Guardian.assistantEvaluations
+ */
+export type Guardian$assistantEvaluationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AssistantEvaluation
+   */
+  select?: Prisma.AssistantEvaluationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AssistantEvaluation
+   */
+  omit?: Prisma.AssistantEvaluationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AssistantEvaluationInclude<ExtArgs> | null
+  where?: Prisma.AssistantEvaluationWhereInput
+  orderBy?: Prisma.AssistantEvaluationOrderByWithRelationInput | Prisma.AssistantEvaluationOrderByWithRelationInput[]
+  cursor?: Prisma.AssistantEvaluationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AssistantEvaluationScalarFieldEnum | Prisma.AssistantEvaluationScalarFieldEnum[]
 }
 
 /**

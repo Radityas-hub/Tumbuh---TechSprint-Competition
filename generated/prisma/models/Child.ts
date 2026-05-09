@@ -242,6 +242,9 @@ export type ChildWhereInput = {
   insights?: Prisma.InsightListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   assistantConversations?: Prisma.AssistantConversationListRelationFilter
+  contextSnapshots?: Prisma.ChildContextSnapshotListRelationFilter
+  assistantResponseLogs?: Prisma.AssistantResponseLogListRelationFilter
+  assistantEvaluations?: Prisma.AssistantEvaluationListRelationFilter
 }
 
 export type ChildOrderByWithRelationInput = {
@@ -265,6 +268,9 @@ export type ChildOrderByWithRelationInput = {
   insights?: Prisma.InsightOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
   assistantConversations?: Prisma.AssistantConversationOrderByRelationAggregateInput
+  contextSnapshots?: Prisma.ChildContextSnapshotOrderByRelationAggregateInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogOrderByRelationAggregateInput
+  assistantEvaluations?: Prisma.AssistantEvaluationOrderByRelationAggregateInput
 }
 
 export type ChildWhereUniqueInput = Prisma.AtLeast<{
@@ -291,6 +297,9 @@ export type ChildWhereUniqueInput = Prisma.AtLeast<{
   insights?: Prisma.InsightListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   assistantConversations?: Prisma.AssistantConversationListRelationFilter
+  contextSnapshots?: Prisma.ChildContextSnapshotListRelationFilter
+  assistantResponseLogs?: Prisma.AssistantResponseLogListRelationFilter
+  assistantEvaluations?: Prisma.AssistantEvaluationListRelationFilter
 }, "id">
 
 export type ChildOrderByWithAggregationInput = {
@@ -349,6 +358,9 @@ export type ChildCreateInput = {
   insights?: Prisma.InsightCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutChildInput
 }
 
 export type ChildUncheckedCreateInput = {
@@ -371,6 +383,9 @@ export type ChildUncheckedCreateInput = {
   insights?: Prisma.InsightUncheckedCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutChildInput
 }
 
 export type ChildUpdateInput = {
@@ -393,6 +408,9 @@ export type ChildUpdateInput = {
   insights?: Prisma.InsightUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutChildNestedInput
 }
 
 export type ChildUncheckedUpdateInput = {
@@ -415,6 +433,9 @@ export type ChildUncheckedUpdateInput = {
   insights?: Prisma.InsightUncheckedUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutChildNestedInput
 }
 
 export type ChildCreateManyInput = {
@@ -685,6 +706,52 @@ export type ChildUpdateOneWithoutAssistantConversationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ChildUpdateToOneWithWhereWithoutAssistantConversationsInput, Prisma.ChildUpdateWithoutAssistantConversationsInput>, Prisma.ChildUncheckedUpdateWithoutAssistantConversationsInput>
 }
 
+export type ChildCreateNestedOneWithoutContextSnapshotsInput = {
+  create?: Prisma.XOR<Prisma.ChildCreateWithoutContextSnapshotsInput, Prisma.ChildUncheckedCreateWithoutContextSnapshotsInput>
+  connectOrCreate?: Prisma.ChildCreateOrConnectWithoutContextSnapshotsInput
+  connect?: Prisma.ChildWhereUniqueInput
+}
+
+export type ChildUpdateOneRequiredWithoutContextSnapshotsNestedInput = {
+  create?: Prisma.XOR<Prisma.ChildCreateWithoutContextSnapshotsInput, Prisma.ChildUncheckedCreateWithoutContextSnapshotsInput>
+  connectOrCreate?: Prisma.ChildCreateOrConnectWithoutContextSnapshotsInput
+  upsert?: Prisma.ChildUpsertWithoutContextSnapshotsInput
+  connect?: Prisma.ChildWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ChildUpdateToOneWithWhereWithoutContextSnapshotsInput, Prisma.ChildUpdateWithoutContextSnapshotsInput>, Prisma.ChildUncheckedUpdateWithoutContextSnapshotsInput>
+}
+
+export type ChildCreateNestedOneWithoutAssistantResponseLogsInput = {
+  create?: Prisma.XOR<Prisma.ChildCreateWithoutAssistantResponseLogsInput, Prisma.ChildUncheckedCreateWithoutAssistantResponseLogsInput>
+  connectOrCreate?: Prisma.ChildCreateOrConnectWithoutAssistantResponseLogsInput
+  connect?: Prisma.ChildWhereUniqueInput
+}
+
+export type ChildUpdateOneWithoutAssistantResponseLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.ChildCreateWithoutAssistantResponseLogsInput, Prisma.ChildUncheckedCreateWithoutAssistantResponseLogsInput>
+  connectOrCreate?: Prisma.ChildCreateOrConnectWithoutAssistantResponseLogsInput
+  upsert?: Prisma.ChildUpsertWithoutAssistantResponseLogsInput
+  disconnect?: Prisma.ChildWhereInput | boolean
+  delete?: Prisma.ChildWhereInput | boolean
+  connect?: Prisma.ChildWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ChildUpdateToOneWithWhereWithoutAssistantResponseLogsInput, Prisma.ChildUpdateWithoutAssistantResponseLogsInput>, Prisma.ChildUncheckedUpdateWithoutAssistantResponseLogsInput>
+}
+
+export type ChildCreateNestedOneWithoutAssistantEvaluationsInput = {
+  create?: Prisma.XOR<Prisma.ChildCreateWithoutAssistantEvaluationsInput, Prisma.ChildUncheckedCreateWithoutAssistantEvaluationsInput>
+  connectOrCreate?: Prisma.ChildCreateOrConnectWithoutAssistantEvaluationsInput
+  connect?: Prisma.ChildWhereUniqueInput
+}
+
+export type ChildUpdateOneWithoutAssistantEvaluationsNestedInput = {
+  create?: Prisma.XOR<Prisma.ChildCreateWithoutAssistantEvaluationsInput, Prisma.ChildUncheckedCreateWithoutAssistantEvaluationsInput>
+  connectOrCreate?: Prisma.ChildCreateOrConnectWithoutAssistantEvaluationsInput
+  upsert?: Prisma.ChildUpsertWithoutAssistantEvaluationsInput
+  disconnect?: Prisma.ChildWhereInput | boolean
+  delete?: Prisma.ChildWhereInput | boolean
+  connect?: Prisma.ChildWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ChildUpdateToOneWithWhereWithoutAssistantEvaluationsInput, Prisma.ChildUpdateWithoutAssistantEvaluationsInput>, Prisma.ChildUncheckedUpdateWithoutAssistantEvaluationsInput>
+}
+
 export type ChildCreateWithoutGuardianInput = {
   id?: string
   name: string
@@ -704,6 +771,9 @@ export type ChildCreateWithoutGuardianInput = {
   insights?: Prisma.InsightCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutChildInput
 }
 
 export type ChildUncheckedCreateWithoutGuardianInput = {
@@ -725,6 +795,9 @@ export type ChildUncheckedCreateWithoutGuardianInput = {
   insights?: Prisma.InsightUncheckedCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutChildInput
 }
 
 export type ChildCreateOrConnectWithoutGuardianInput = {
@@ -790,6 +863,9 @@ export type ChildCreateWithoutConsentsInput = {
   insights?: Prisma.InsightCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutChildInput
 }
 
 export type ChildUncheckedCreateWithoutConsentsInput = {
@@ -811,6 +887,9 @@ export type ChildUncheckedCreateWithoutConsentsInput = {
   insights?: Prisma.InsightUncheckedCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutChildInput
 }
 
 export type ChildCreateOrConnectWithoutConsentsInput = {
@@ -848,6 +927,9 @@ export type ChildUpdateWithoutConsentsInput = {
   insights?: Prisma.InsightUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutChildNestedInput
 }
 
 export type ChildUncheckedUpdateWithoutConsentsInput = {
@@ -869,6 +951,9 @@ export type ChildUncheckedUpdateWithoutConsentsInput = {
   insights?: Prisma.InsightUncheckedUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutChildNestedInput
 }
 
 export type ChildCreateWithoutProgressEntriesInput = {
@@ -890,6 +975,9 @@ export type ChildCreateWithoutProgressEntriesInput = {
   insights?: Prisma.InsightCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutChildInput
 }
 
 export type ChildUncheckedCreateWithoutProgressEntriesInput = {
@@ -911,6 +999,9 @@ export type ChildUncheckedCreateWithoutProgressEntriesInput = {
   insights?: Prisma.InsightUncheckedCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutChildInput
 }
 
 export type ChildCreateOrConnectWithoutProgressEntriesInput = {
@@ -948,6 +1039,9 @@ export type ChildUpdateWithoutProgressEntriesInput = {
   insights?: Prisma.InsightUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutChildNestedInput
 }
 
 export type ChildUncheckedUpdateWithoutProgressEntriesInput = {
@@ -969,6 +1063,9 @@ export type ChildUncheckedUpdateWithoutProgressEntriesInput = {
   insights?: Prisma.InsightUncheckedUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutChildNestedInput
 }
 
 export type ChildCreateWithoutMediaAssetsInput = {
@@ -990,6 +1087,9 @@ export type ChildCreateWithoutMediaAssetsInput = {
   insights?: Prisma.InsightCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutChildInput
 }
 
 export type ChildUncheckedCreateWithoutMediaAssetsInput = {
@@ -1011,6 +1111,9 @@ export type ChildUncheckedCreateWithoutMediaAssetsInput = {
   insights?: Prisma.InsightUncheckedCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutChildInput
 }
 
 export type ChildCreateOrConnectWithoutMediaAssetsInput = {
@@ -1048,6 +1151,9 @@ export type ChildUpdateWithoutMediaAssetsInput = {
   insights?: Prisma.InsightUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutChildNestedInput
 }
 
 export type ChildUncheckedUpdateWithoutMediaAssetsInput = {
@@ -1069,6 +1175,9 @@ export type ChildUncheckedUpdateWithoutMediaAssetsInput = {
   insights?: Prisma.InsightUncheckedUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutChildNestedInput
 }
 
 export type ChildCreateWithoutRoadmapItemsInput = {
@@ -1090,6 +1199,9 @@ export type ChildCreateWithoutRoadmapItemsInput = {
   insights?: Prisma.InsightCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutChildInput
 }
 
 export type ChildUncheckedCreateWithoutRoadmapItemsInput = {
@@ -1111,6 +1223,9 @@ export type ChildUncheckedCreateWithoutRoadmapItemsInput = {
   insights?: Prisma.InsightUncheckedCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutChildInput
 }
 
 export type ChildCreateOrConnectWithoutRoadmapItemsInput = {
@@ -1148,6 +1263,9 @@ export type ChildUpdateWithoutRoadmapItemsInput = {
   insights?: Prisma.InsightUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutChildNestedInput
 }
 
 export type ChildUncheckedUpdateWithoutRoadmapItemsInput = {
@@ -1169,6 +1287,9 @@ export type ChildUncheckedUpdateWithoutRoadmapItemsInput = {
   insights?: Prisma.InsightUncheckedUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutChildNestedInput
 }
 
 export type ChildCreateWithoutInsightsInput = {
@@ -1190,6 +1311,9 @@ export type ChildCreateWithoutInsightsInput = {
   roadmapItems?: Prisma.RoadmapItemCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutChildInput
 }
 
 export type ChildUncheckedCreateWithoutInsightsInput = {
@@ -1211,6 +1335,9 @@ export type ChildUncheckedCreateWithoutInsightsInput = {
   roadmapItems?: Prisma.RoadmapItemUncheckedCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutChildInput
 }
 
 export type ChildCreateOrConnectWithoutInsightsInput = {
@@ -1248,6 +1375,9 @@ export type ChildUpdateWithoutInsightsInput = {
   roadmapItems?: Prisma.RoadmapItemUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutChildNestedInput
 }
 
 export type ChildUncheckedUpdateWithoutInsightsInput = {
@@ -1269,6 +1399,9 @@ export type ChildUncheckedUpdateWithoutInsightsInput = {
   roadmapItems?: Prisma.RoadmapItemUncheckedUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutChildNestedInput
 }
 
 export type ChildCreateWithoutAuditLogsInput = {
@@ -1290,6 +1423,9 @@ export type ChildCreateWithoutAuditLogsInput = {
   roadmapItems?: Prisma.RoadmapItemCreateNestedManyWithoutChildInput
   insights?: Prisma.InsightCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutChildInput
 }
 
 export type ChildUncheckedCreateWithoutAuditLogsInput = {
@@ -1311,6 +1447,9 @@ export type ChildUncheckedCreateWithoutAuditLogsInput = {
   roadmapItems?: Prisma.RoadmapItemUncheckedCreateNestedManyWithoutChildInput
   insights?: Prisma.InsightUncheckedCreateNestedManyWithoutChildInput
   assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutChildInput
 }
 
 export type ChildCreateOrConnectWithoutAuditLogsInput = {
@@ -1348,6 +1487,9 @@ export type ChildUpdateWithoutAuditLogsInput = {
   roadmapItems?: Prisma.RoadmapItemUpdateManyWithoutChildNestedInput
   insights?: Prisma.InsightUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutChildNestedInput
 }
 
 export type ChildUncheckedUpdateWithoutAuditLogsInput = {
@@ -1369,6 +1511,9 @@ export type ChildUncheckedUpdateWithoutAuditLogsInput = {
   roadmapItems?: Prisma.RoadmapItemUncheckedUpdateManyWithoutChildNestedInput
   insights?: Prisma.InsightUncheckedUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutChildNestedInput
 }
 
 export type ChildCreateWithoutAssistantConversationsInput = {
@@ -1390,6 +1535,9 @@ export type ChildCreateWithoutAssistantConversationsInput = {
   roadmapItems?: Prisma.RoadmapItemCreateNestedManyWithoutChildInput
   insights?: Prisma.InsightCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutChildInput
 }
 
 export type ChildUncheckedCreateWithoutAssistantConversationsInput = {
@@ -1411,6 +1559,9 @@ export type ChildUncheckedCreateWithoutAssistantConversationsInput = {
   roadmapItems?: Prisma.RoadmapItemUncheckedCreateNestedManyWithoutChildInput
   insights?: Prisma.InsightUncheckedCreateNestedManyWithoutChildInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutChildInput
 }
 
 export type ChildCreateOrConnectWithoutAssistantConversationsInput = {
@@ -1448,6 +1599,9 @@ export type ChildUpdateWithoutAssistantConversationsInput = {
   roadmapItems?: Prisma.RoadmapItemUpdateManyWithoutChildNestedInput
   insights?: Prisma.InsightUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutChildNestedInput
 }
 
 export type ChildUncheckedUpdateWithoutAssistantConversationsInput = {
@@ -1469,6 +1623,345 @@ export type ChildUncheckedUpdateWithoutAssistantConversationsInput = {
   roadmapItems?: Prisma.RoadmapItemUncheckedUpdateManyWithoutChildNestedInput
   insights?: Prisma.InsightUncheckedUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutChildNestedInput
+}
+
+export type ChildCreateWithoutContextSnapshotsInput = {
+  id?: string
+  name: string
+  birthDate: Date | string
+  condition: string
+  focusAreas?: Prisma.ChildCreatefocusAreasInput | $Enums.FocusArea[]
+  routine?: string | null
+  supportNeed?: string | null
+  onboardingCompletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  guardian: Prisma.GuardianCreateNestedOneWithoutChildrenInput
+  consents?: Prisma.ConsentCreateNestedManyWithoutChildInput
+  progressEntries?: Prisma.ProgressEntryCreateNestedManyWithoutChildInput
+  mediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutChildInput
+  roadmapItems?: Prisma.RoadmapItemCreateNestedManyWithoutChildInput
+  insights?: Prisma.InsightCreateNestedManyWithoutChildInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutChildInput
+  assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutChildInput
+}
+
+export type ChildUncheckedCreateWithoutContextSnapshotsInput = {
+  id?: string
+  guardianId: string
+  name: string
+  birthDate: Date | string
+  condition: string
+  focusAreas?: Prisma.ChildCreatefocusAreasInput | $Enums.FocusArea[]
+  routine?: string | null
+  supportNeed?: string | null
+  onboardingCompletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  consents?: Prisma.ConsentUncheckedCreateNestedManyWithoutChildInput
+  progressEntries?: Prisma.ProgressEntryUncheckedCreateNestedManyWithoutChildInput
+  mediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutChildInput
+  roadmapItems?: Prisma.RoadmapItemUncheckedCreateNestedManyWithoutChildInput
+  insights?: Prisma.InsightUncheckedCreateNestedManyWithoutChildInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutChildInput
+  assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutChildInput
+}
+
+export type ChildCreateOrConnectWithoutContextSnapshotsInput = {
+  where: Prisma.ChildWhereUniqueInput
+  create: Prisma.XOR<Prisma.ChildCreateWithoutContextSnapshotsInput, Prisma.ChildUncheckedCreateWithoutContextSnapshotsInput>
+}
+
+export type ChildUpsertWithoutContextSnapshotsInput = {
+  update: Prisma.XOR<Prisma.ChildUpdateWithoutContextSnapshotsInput, Prisma.ChildUncheckedUpdateWithoutContextSnapshotsInput>
+  create: Prisma.XOR<Prisma.ChildCreateWithoutContextSnapshotsInput, Prisma.ChildUncheckedCreateWithoutContextSnapshotsInput>
+  where?: Prisma.ChildWhereInput
+}
+
+export type ChildUpdateToOneWithWhereWithoutContextSnapshotsInput = {
+  where?: Prisma.ChildWhereInput
+  data: Prisma.XOR<Prisma.ChildUpdateWithoutContextSnapshotsInput, Prisma.ChildUncheckedUpdateWithoutContextSnapshotsInput>
+}
+
+export type ChildUpdateWithoutContextSnapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  condition?: Prisma.StringFieldUpdateOperationsInput | string
+  focusAreas?: Prisma.ChildUpdatefocusAreasInput | $Enums.FocusArea[]
+  routine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supportNeed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  guardian?: Prisma.GuardianUpdateOneRequiredWithoutChildrenNestedInput
+  consents?: Prisma.ConsentUpdateManyWithoutChildNestedInput
+  progressEntries?: Prisma.ProgressEntryUpdateManyWithoutChildNestedInput
+  mediaAssets?: Prisma.MediaAssetUpdateManyWithoutChildNestedInput
+  roadmapItems?: Prisma.RoadmapItemUpdateManyWithoutChildNestedInput
+  insights?: Prisma.InsightUpdateManyWithoutChildNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutChildNestedInput
+  assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutChildNestedInput
+}
+
+export type ChildUncheckedUpdateWithoutContextSnapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guardianId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  condition?: Prisma.StringFieldUpdateOperationsInput | string
+  focusAreas?: Prisma.ChildUpdatefocusAreasInput | $Enums.FocusArea[]
+  routine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supportNeed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  consents?: Prisma.ConsentUncheckedUpdateManyWithoutChildNestedInput
+  progressEntries?: Prisma.ProgressEntryUncheckedUpdateManyWithoutChildNestedInput
+  mediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutChildNestedInput
+  roadmapItems?: Prisma.RoadmapItemUncheckedUpdateManyWithoutChildNestedInput
+  insights?: Prisma.InsightUncheckedUpdateManyWithoutChildNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutChildNestedInput
+}
+
+export type ChildCreateWithoutAssistantResponseLogsInput = {
+  id?: string
+  name: string
+  birthDate: Date | string
+  condition: string
+  focusAreas?: Prisma.ChildCreatefocusAreasInput | $Enums.FocusArea[]
+  routine?: string | null
+  supportNeed?: string | null
+  onboardingCompletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  guardian: Prisma.GuardianCreateNestedOneWithoutChildrenInput
+  consents?: Prisma.ConsentCreateNestedManyWithoutChildInput
+  progressEntries?: Prisma.ProgressEntryCreateNestedManyWithoutChildInput
+  mediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutChildInput
+  roadmapItems?: Prisma.RoadmapItemCreateNestedManyWithoutChildInput
+  insights?: Prisma.InsightCreateNestedManyWithoutChildInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutChildInput
+  assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationCreateNestedManyWithoutChildInput
+}
+
+export type ChildUncheckedCreateWithoutAssistantResponseLogsInput = {
+  id?: string
+  guardianId: string
+  name: string
+  birthDate: Date | string
+  condition: string
+  focusAreas?: Prisma.ChildCreatefocusAreasInput | $Enums.FocusArea[]
+  routine?: string | null
+  supportNeed?: string | null
+  onboardingCompletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  consents?: Prisma.ConsentUncheckedCreateNestedManyWithoutChildInput
+  progressEntries?: Prisma.ProgressEntryUncheckedCreateNestedManyWithoutChildInput
+  mediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutChildInput
+  roadmapItems?: Prisma.RoadmapItemUncheckedCreateNestedManyWithoutChildInput
+  insights?: Prisma.InsightUncheckedCreateNestedManyWithoutChildInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutChildInput
+  assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedCreateNestedManyWithoutChildInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedCreateNestedManyWithoutChildInput
+}
+
+export type ChildCreateOrConnectWithoutAssistantResponseLogsInput = {
+  where: Prisma.ChildWhereUniqueInput
+  create: Prisma.XOR<Prisma.ChildCreateWithoutAssistantResponseLogsInput, Prisma.ChildUncheckedCreateWithoutAssistantResponseLogsInput>
+}
+
+export type ChildUpsertWithoutAssistantResponseLogsInput = {
+  update: Prisma.XOR<Prisma.ChildUpdateWithoutAssistantResponseLogsInput, Prisma.ChildUncheckedUpdateWithoutAssistantResponseLogsInput>
+  create: Prisma.XOR<Prisma.ChildCreateWithoutAssistantResponseLogsInput, Prisma.ChildUncheckedCreateWithoutAssistantResponseLogsInput>
+  where?: Prisma.ChildWhereInput
+}
+
+export type ChildUpdateToOneWithWhereWithoutAssistantResponseLogsInput = {
+  where?: Prisma.ChildWhereInput
+  data: Prisma.XOR<Prisma.ChildUpdateWithoutAssistantResponseLogsInput, Prisma.ChildUncheckedUpdateWithoutAssistantResponseLogsInput>
+}
+
+export type ChildUpdateWithoutAssistantResponseLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  condition?: Prisma.StringFieldUpdateOperationsInput | string
+  focusAreas?: Prisma.ChildUpdatefocusAreasInput | $Enums.FocusArea[]
+  routine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supportNeed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  guardian?: Prisma.GuardianUpdateOneRequiredWithoutChildrenNestedInput
+  consents?: Prisma.ConsentUpdateManyWithoutChildNestedInput
+  progressEntries?: Prisma.ProgressEntryUpdateManyWithoutChildNestedInput
+  mediaAssets?: Prisma.MediaAssetUpdateManyWithoutChildNestedInput
+  roadmapItems?: Prisma.RoadmapItemUpdateManyWithoutChildNestedInput
+  insights?: Prisma.InsightUpdateManyWithoutChildNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutChildNestedInput
+  assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutChildNestedInput
+}
+
+export type ChildUncheckedUpdateWithoutAssistantResponseLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guardianId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  condition?: Prisma.StringFieldUpdateOperationsInput | string
+  focusAreas?: Prisma.ChildUpdatefocusAreasInput | $Enums.FocusArea[]
+  routine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supportNeed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  consents?: Prisma.ConsentUncheckedUpdateManyWithoutChildNestedInput
+  progressEntries?: Prisma.ProgressEntryUncheckedUpdateManyWithoutChildNestedInput
+  mediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutChildNestedInput
+  roadmapItems?: Prisma.RoadmapItemUncheckedUpdateManyWithoutChildNestedInput
+  insights?: Prisma.InsightUncheckedUpdateManyWithoutChildNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutChildNestedInput
+}
+
+export type ChildCreateWithoutAssistantEvaluationsInput = {
+  id?: string
+  name: string
+  birthDate: Date | string
+  condition: string
+  focusAreas?: Prisma.ChildCreatefocusAreasInput | $Enums.FocusArea[]
+  routine?: string | null
+  supportNeed?: string | null
+  onboardingCompletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  guardian: Prisma.GuardianCreateNestedOneWithoutChildrenInput
+  consents?: Prisma.ConsentCreateNestedManyWithoutChildInput
+  progressEntries?: Prisma.ProgressEntryCreateNestedManyWithoutChildInput
+  mediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutChildInput
+  roadmapItems?: Prisma.RoadmapItemCreateNestedManyWithoutChildInput
+  insights?: Prisma.InsightCreateNestedManyWithoutChildInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutChildInput
+  assistantConversations?: Prisma.AssistantConversationCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogCreateNestedManyWithoutChildInput
+}
+
+export type ChildUncheckedCreateWithoutAssistantEvaluationsInput = {
+  id?: string
+  guardianId: string
+  name: string
+  birthDate: Date | string
+  condition: string
+  focusAreas?: Prisma.ChildCreatefocusAreasInput | $Enums.FocusArea[]
+  routine?: string | null
+  supportNeed?: string | null
+  onboardingCompletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  consents?: Prisma.ConsentUncheckedCreateNestedManyWithoutChildInput
+  progressEntries?: Prisma.ProgressEntryUncheckedCreateNestedManyWithoutChildInput
+  mediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutChildInput
+  roadmapItems?: Prisma.RoadmapItemUncheckedCreateNestedManyWithoutChildInput
+  insights?: Prisma.InsightUncheckedCreateNestedManyWithoutChildInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutChildInput
+  assistantConversations?: Prisma.AssistantConversationUncheckedCreateNestedManyWithoutChildInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedCreateNestedManyWithoutChildInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedCreateNestedManyWithoutChildInput
+}
+
+export type ChildCreateOrConnectWithoutAssistantEvaluationsInput = {
+  where: Prisma.ChildWhereUniqueInput
+  create: Prisma.XOR<Prisma.ChildCreateWithoutAssistantEvaluationsInput, Prisma.ChildUncheckedCreateWithoutAssistantEvaluationsInput>
+}
+
+export type ChildUpsertWithoutAssistantEvaluationsInput = {
+  update: Prisma.XOR<Prisma.ChildUpdateWithoutAssistantEvaluationsInput, Prisma.ChildUncheckedUpdateWithoutAssistantEvaluationsInput>
+  create: Prisma.XOR<Prisma.ChildCreateWithoutAssistantEvaluationsInput, Prisma.ChildUncheckedCreateWithoutAssistantEvaluationsInput>
+  where?: Prisma.ChildWhereInput
+}
+
+export type ChildUpdateToOneWithWhereWithoutAssistantEvaluationsInput = {
+  where?: Prisma.ChildWhereInput
+  data: Prisma.XOR<Prisma.ChildUpdateWithoutAssistantEvaluationsInput, Prisma.ChildUncheckedUpdateWithoutAssistantEvaluationsInput>
+}
+
+export type ChildUpdateWithoutAssistantEvaluationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  condition?: Prisma.StringFieldUpdateOperationsInput | string
+  focusAreas?: Prisma.ChildUpdatefocusAreasInput | $Enums.FocusArea[]
+  routine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supportNeed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  guardian?: Prisma.GuardianUpdateOneRequiredWithoutChildrenNestedInput
+  consents?: Prisma.ConsentUpdateManyWithoutChildNestedInput
+  progressEntries?: Prisma.ProgressEntryUpdateManyWithoutChildNestedInput
+  mediaAssets?: Prisma.MediaAssetUpdateManyWithoutChildNestedInput
+  roadmapItems?: Prisma.RoadmapItemUpdateManyWithoutChildNestedInput
+  insights?: Prisma.InsightUpdateManyWithoutChildNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutChildNestedInput
+  assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutChildNestedInput
+}
+
+export type ChildUncheckedUpdateWithoutAssistantEvaluationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  guardianId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  birthDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  condition?: Prisma.StringFieldUpdateOperationsInput | string
+  focusAreas?: Prisma.ChildUpdatefocusAreasInput | $Enums.FocusArea[]
+  routine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supportNeed?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  onboardingCompletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  consents?: Prisma.ConsentUncheckedUpdateManyWithoutChildNestedInput
+  progressEntries?: Prisma.ProgressEntryUncheckedUpdateManyWithoutChildNestedInput
+  mediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutChildNestedInput
+  roadmapItems?: Prisma.RoadmapItemUncheckedUpdateManyWithoutChildNestedInput
+  insights?: Prisma.InsightUncheckedUpdateManyWithoutChildNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutChildNestedInput
 }
 
 export type ChildCreateManyGuardianInput = {
@@ -1504,6 +1997,9 @@ export type ChildUpdateWithoutGuardianInput = {
   insights?: Prisma.InsightUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUpdateManyWithoutChildNestedInput
 }
 
 export type ChildUncheckedUpdateWithoutGuardianInput = {
@@ -1525,6 +2021,9 @@ export type ChildUncheckedUpdateWithoutGuardianInput = {
   insights?: Prisma.InsightUncheckedUpdateManyWithoutChildNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutChildNestedInput
   assistantConversations?: Prisma.AssistantConversationUncheckedUpdateManyWithoutChildNestedInput
+  contextSnapshots?: Prisma.ChildContextSnapshotUncheckedUpdateManyWithoutChildNestedInput
+  assistantResponseLogs?: Prisma.AssistantResponseLogUncheckedUpdateManyWithoutChildNestedInput
+  assistantEvaluations?: Prisma.AssistantEvaluationUncheckedUpdateManyWithoutChildNestedInput
 }
 
 export type ChildUncheckedUpdateManyWithoutGuardianInput = {
@@ -1554,6 +2053,9 @@ export type ChildCountOutputType = {
   insights: number
   auditLogs: number
   assistantConversations: number
+  contextSnapshots: number
+  assistantResponseLogs: number
+  assistantEvaluations: number
 }
 
 export type ChildCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1564,6 +2066,9 @@ export type ChildCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   insights?: boolean | ChildCountOutputTypeCountInsightsArgs
   auditLogs?: boolean | ChildCountOutputTypeCountAuditLogsArgs
   assistantConversations?: boolean | ChildCountOutputTypeCountAssistantConversationsArgs
+  contextSnapshots?: boolean | ChildCountOutputTypeCountContextSnapshotsArgs
+  assistantResponseLogs?: boolean | ChildCountOutputTypeCountAssistantResponseLogsArgs
+  assistantEvaluations?: boolean | ChildCountOutputTypeCountAssistantEvaluationsArgs
 }
 
 /**
@@ -1625,6 +2130,27 @@ export type ChildCountOutputTypeCountAssistantConversationsArgs<ExtArgs extends 
   where?: Prisma.AssistantConversationWhereInput
 }
 
+/**
+ * ChildCountOutputType without action
+ */
+export type ChildCountOutputTypeCountContextSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ChildContextSnapshotWhereInput
+}
+
+/**
+ * ChildCountOutputType without action
+ */
+export type ChildCountOutputTypeCountAssistantResponseLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AssistantResponseLogWhereInput
+}
+
+/**
+ * ChildCountOutputType without action
+ */
+export type ChildCountOutputTypeCountAssistantEvaluationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AssistantEvaluationWhereInput
+}
+
 
 export type ChildSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1647,6 +2173,9 @@ export type ChildSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   insights?: boolean | Prisma.Child$insightsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Child$auditLogsArgs<ExtArgs>
   assistantConversations?: boolean | Prisma.Child$assistantConversationsArgs<ExtArgs>
+  contextSnapshots?: boolean | Prisma.Child$contextSnapshotsArgs<ExtArgs>
+  assistantResponseLogs?: boolean | Prisma.Child$assistantResponseLogsArgs<ExtArgs>
+  assistantEvaluations?: boolean | Prisma.Child$assistantEvaluationsArgs<ExtArgs>
   _count?: boolean | Prisma.ChildCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["child"]>
 
@@ -1707,6 +2236,9 @@ export type ChildInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   insights?: boolean | Prisma.Child$insightsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Child$auditLogsArgs<ExtArgs>
   assistantConversations?: boolean | Prisma.Child$assistantConversationsArgs<ExtArgs>
+  contextSnapshots?: boolean | Prisma.Child$contextSnapshotsArgs<ExtArgs>
+  assistantResponseLogs?: boolean | Prisma.Child$assistantResponseLogsArgs<ExtArgs>
+  assistantEvaluations?: boolean | Prisma.Child$assistantEvaluationsArgs<ExtArgs>
   _count?: boolean | Prisma.ChildCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ChildIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1727,6 +2259,9 @@ export type $ChildPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     insights: Prisma.$InsightPayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
     assistantConversations: Prisma.$AssistantConversationPayload<ExtArgs>[]
+    contextSnapshots: Prisma.$ChildContextSnapshotPayload<ExtArgs>[]
+    assistantResponseLogs: Prisma.$AssistantResponseLogPayload<ExtArgs>[]
+    assistantEvaluations: Prisma.$AssistantEvaluationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2143,6 +2678,9 @@ export interface Prisma__ChildClient<T, Null = never, ExtArgs extends runtime.Ty
   insights<T extends Prisma.Child$insightsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Child$insightsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InsightPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.Child$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Child$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assistantConversations<T extends Prisma.Child$assistantConversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Child$assistantConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  contextSnapshots<T extends Prisma.Child$contextSnapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Child$contextSnapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChildContextSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assistantResponseLogs<T extends Prisma.Child$assistantResponseLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Child$assistantResponseLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AssistantResponseLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assistantEvaluations<T extends Prisma.Child$assistantEvaluationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Child$assistantEvaluationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AssistantEvaluationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2750,6 +3288,78 @@ export type Child$assistantConversationsArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.AssistantConversationScalarFieldEnum | Prisma.AssistantConversationScalarFieldEnum[]
+}
+
+/**
+ * Child.contextSnapshots
+ */
+export type Child$contextSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ChildContextSnapshot
+   */
+  select?: Prisma.ChildContextSnapshotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ChildContextSnapshot
+   */
+  omit?: Prisma.ChildContextSnapshotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ChildContextSnapshotInclude<ExtArgs> | null
+  where?: Prisma.ChildContextSnapshotWhereInput
+  orderBy?: Prisma.ChildContextSnapshotOrderByWithRelationInput | Prisma.ChildContextSnapshotOrderByWithRelationInput[]
+  cursor?: Prisma.ChildContextSnapshotWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ChildContextSnapshotScalarFieldEnum | Prisma.ChildContextSnapshotScalarFieldEnum[]
+}
+
+/**
+ * Child.assistantResponseLogs
+ */
+export type Child$assistantResponseLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AssistantResponseLog
+   */
+  select?: Prisma.AssistantResponseLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AssistantResponseLog
+   */
+  omit?: Prisma.AssistantResponseLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AssistantResponseLogInclude<ExtArgs> | null
+  where?: Prisma.AssistantResponseLogWhereInput
+  orderBy?: Prisma.AssistantResponseLogOrderByWithRelationInput | Prisma.AssistantResponseLogOrderByWithRelationInput[]
+  cursor?: Prisma.AssistantResponseLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AssistantResponseLogScalarFieldEnum | Prisma.AssistantResponseLogScalarFieldEnum[]
+}
+
+/**
+ * Child.assistantEvaluations
+ */
+export type Child$assistantEvaluationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AssistantEvaluation
+   */
+  select?: Prisma.AssistantEvaluationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AssistantEvaluation
+   */
+  omit?: Prisma.AssistantEvaluationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AssistantEvaluationInclude<ExtArgs> | null
+  where?: Prisma.AssistantEvaluationWhereInput
+  orderBy?: Prisma.AssistantEvaluationOrderByWithRelationInput | Prisma.AssistantEvaluationOrderByWithRelationInput[]
+  cursor?: Prisma.AssistantEvaluationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AssistantEvaluationScalarFieldEnum | Prisma.AssistantEvaluationScalarFieldEnum[]
 }
 
 /**

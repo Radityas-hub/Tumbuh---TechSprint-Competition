@@ -26,6 +26,12 @@ const devAuthHeaders = {
   name: "x-dev-auth-name",
 };
 
+const devAuthQueryParams = {
+  userId: "devAuthUserId",
+  email: "devAuthEmail",
+  name: "devAuthName",
+};
+
 function getSupabaseUrl() {
   return process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
 }
@@ -49,8 +55,14 @@ function getDevelopmentUser(request: NextRequest): AuthenticatedUser | null {
     return null;
   }
 
-  const authUserId = request.headers.get(devAuthHeaders.userId)?.trim();
-  const email = request.headers.get(devAuthHeaders.email)?.trim();
+  const authUserId =
+    request.headers.get(devAuthHeaders.userId)?.trim() ??
+    request.nextUrl.searchParams.get(devAuthQueryParams.userId)?.trim() ??
+    "";
+  const email =
+    request.headers.get(devAuthHeaders.email)?.trim() ??
+    request.nextUrl.searchParams.get(devAuthQueryParams.email)?.trim() ??
+    "";
 
   if (!authUserId || !email) {
     return null;
@@ -59,7 +71,10 @@ function getDevelopmentUser(request: NextRequest): AuthenticatedUser | null {
   return {
     authUserId,
     email,
-    displayName: request.headers.get(devAuthHeaders.name)?.trim() || null,
+    displayName:
+      request.headers.get(devAuthHeaders.name)?.trim() ??
+      request.nextUrl.searchParams.get(devAuthQueryParams.name)?.trim() ??
+      null,
   };
 }
 

@@ -9,8 +9,14 @@ yarn-debug.log*
 yarn-error.log*
 dev-server*.log
 storage/
+tsconfig.tsbuildinfo
 
-# AI assistant/tooling metadata
+# IDE / editor
+.vscode/
+.idea/
+
+# AI assistant / tooling metadata
+.kiro/
 .agents/
 .codex/
 .claude/
@@ -23,3 +29,6 @@ prompts/
 *.prompt.md
 *.ai.md
 llms.txt
+
+# Docs drafts yang belum siap publish
+docs/ai-knowledge-base-rag-implementation.md

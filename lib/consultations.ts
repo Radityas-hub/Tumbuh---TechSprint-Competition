@@ -72,6 +72,19 @@ export type ConsultationRecommendation = {
   specialty: string;
 };
 
+export type ConsultationRecommendationsResponse = {
+  child: {
+    id: string;
+    name: string;
+  };
+  latestInsightSummary: string | null;
+  recommendations: ConsultationRecommendation[];
+  meta: {
+    hasMeaningfulProgress: boolean;
+    shouldUsePlaceholder: boolean;
+  };
+};
+
 function parseJsonObject(value: Prisma.JsonValue | null): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
@@ -143,11 +156,14 @@ function buildRecommendationForArea(area: FocusAreaLabel): ConsultationRecommend
   };
 }
 
-export async function getConsultationRecommendationsForChild(guardianId: string, childId: string) {
+export async function getConsultationRecommendationsForChild(
+  guardianId: string,
+  childId: string,
+): Promise<ConsultationRecommendationsResponse> {
   const child = await getOwnedChildForGuardian(guardianId, childId);
   const focusAreas = mapFocusAreasToLabel(child.focusAreas);
 
-  const [latestInsight, roadmapAttentionCount] = await Promise.all([
+  const [latestInsight, roadmapAttentionCount, totalProgressCount] = await Promise.all([
     prisma.insight.findFirst({
       where: {
         childId,
@@ -164,11 +180,22 @@ export async function getConsultationRecommendationsForChild(guardianId: string,
         status: RoadmapStatus.NEEDS_ATTENTION,
       },
     }),
+    prisma.progressEntry.count({
+      where: {
+        childId,
+        deletedAt: null,
+      },
+    }),
   ]);
 
-  const recommendations = focusAreas.slice(0, 2).map(buildRecommendationForArea);
+  const hasMeaningfulProgress = totalProgressCount > 0;
+  const shouldUsePlaceholder = !hasMeaningfulProgress;
 
-  if (roadmapAttentionCount > 0) {
+  const recommendations = hasMeaningfulProgress
+    ? focusAreas.slice(0, 2).map(buildRecommendationForArea)
+    : [];
+
+  if (hasMeaningfulProgress && roadmapAttentionCount > 0) {
     recommendations.push({
       title: "Fasilitas terdekat",
       specialty: "Layanan terdekat",
@@ -182,8 +209,12 @@ export async function getConsultationRecommendationsForChild(guardianId: string,
       id: child.id,
       name: child.name,
     },
-    latestInsightSummary: latestInsight?.summary ?? null,
+    latestInsightSummary: hasMeaningfulProgress ? latestInsight?.summary ?? null : null,
     recommendations,
+    meta: {
+      hasMeaningfulProgress,
+      shouldUsePlaceholder,
+    },
   };
 }
 

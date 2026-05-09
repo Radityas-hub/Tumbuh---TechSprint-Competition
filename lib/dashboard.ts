@@ -34,6 +34,12 @@ export type DashboardResponse = {
   latestInsight: Awaited<ReturnType<typeof getLatestInsightForChild>>;
   activities: DashboardActivity[];
   roadmapPreview: SerializedRoadmapItem[];
+  meta: {
+    hasMeaningfulProgress: boolean;
+    hasCurrentWeekEntries: boolean;
+    usesSeedRoadmap: boolean;
+    shouldUsePlaceholder: boolean;
+  };
 };
 
 function startOfDay(value: Date) {
@@ -63,14 +69,23 @@ export async function buildDashboardForChild(childId: string): Promise<Dashboard
     select: {
       id: true,
       focusAreas: true,
+      condition: true,
+      birthDate: true,
+      routine: true,
+      supportNeed: true,
     },
   });
 
-  const [latestInsight, roadmapItems, weekEntries, previousWeekCount] = await Promise.all([
+  const [latestInsight, roadmapItems, weekEntries, previousWeekCount, totalProgressCount] =
+    await Promise.all([
     getLatestInsightForChild(childId),
     ensureInitialRoadmapForChild({
       childId,
       focusAreas: mapFocusAreasToLabel(child.focusAreas),
+      condition: child.condition,
+      birthDate: child.birthDate,
+      routine: child.routine,
+      supportNeed: child.supportNeed,
     }),
     prisma.progressEntry.findMany({
       where: {
@@ -97,6 +112,12 @@ export async function buildDashboardForChild(childId: string): Promise<Dashboard
         },
       },
     }),
+    prisma.progressEntry.count({
+      where: {
+        childId,
+        deletedAt: null,
+      },
+    }),
   ]);
 
   const chart = Array.from({ length: 7 }, (_, index) => {
@@ -113,14 +134,18 @@ export async function buildDashboardForChild(childId: string): Promise<Dashboard
   });
 
   const notesThisWeek = weekEntries.length;
+  const hasMeaningfulProgress = totalProgressCount > 0;
+  const shouldUsePlaceholder = !hasMeaningfulProgress;
+  const usesSeedRoadmap = shouldUsePlaceholder && roadmapItems.length > 0;
   const achievedTargets = roadmapItems.filter((item) => item.status === RoadmapStatus.ACHIEVED).length;
   const activeRoadmapCount = roadmapItems.filter(
     (item) => item.status === RoadmapStatus.IN_PROGRESS || item.status === RoadmapStatus.ACHIEVED,
   ).length;
-  const alertCount = latestInsight?.alerts.length ?? 0;
+  const alertCount = hasMeaningfulProgress ? latestInsight?.alerts.length ?? 0 : 0;
   const delta = notesThisWeek - previousWeekCount;
 
-  const recommendations = latestInsight?.recommendations.slice(0, 3) ?? [];
+  const recommendations =
+    hasMeaningfulProgress ? latestInsight?.recommendations.slice(0, 3) ?? [] : [];
   const activities: DashboardActivity[] = recommendations.map((body, index) => ({
     title:
       index === 0
@@ -134,18 +159,24 @@ export async function buildDashboardForChild(childId: string): Promise<Dashboard
 
   return {
     metrics: {
-      notesThisWeek,
-      completedActivities: activeRoadmapCount,
-      achievedTargets,
+      notesThisWeek: hasMeaningfulProgress ? notesThisWeek : 0,
+      completedActivities: hasMeaningfulProgress ? activeRoadmapCount : 0,
+      achievedTargets: hasMeaningfulProgress ? achievedTargets : 0,
       alertCount,
     },
-    chart,
+    chart: hasMeaningfulProgress ? chart : [],
     trend: {
       direction: delta > 0 ? "up" : "flat",
-      label: delta > 0 ? `+${delta}` : "Stabil",
+      label: hasMeaningfulProgress ? (delta > 0 ? `+${delta}` : "Stabil") : "",
     },
-    latestInsight,
-    activities,
-    roadmapPreview: roadmapItems.slice(0, 4),
+    latestInsight: hasMeaningfulProgress ? latestInsight : null,
+    activities: hasMeaningfulProgress ? activities : [],
+    roadmapPreview: hasMeaningfulProgress ? roadmapItems.slice(0, 4) : [],
+    meta: {
+      hasMeaningfulProgress,
+      hasCurrentWeekEntries: notesThisWeek > 0,
+      usesSeedRoadmap,
+      shouldUsePlaceholder,
+    },
   };
 }

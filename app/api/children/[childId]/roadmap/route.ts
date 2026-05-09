@@ -6,6 +6,7 @@ import { getOrCreateGuardianForRequest } from "../../../../../lib/auth/session";
 import { handleRouteError, ok } from "../../../../../lib/api/response";
 import { parseParams, z } from "../../../../../lib/api/validation";
 import { getLatestInsightForChild } from "../../../../../lib/insights";
+import { prisma } from "../../../../../lib/prisma";
 import { buildRoadmapMeta, ensureInitialRoadmapForChild } from "../../../../../lib/roadmap";
 
 const childParamsSchema = z.object({
@@ -28,13 +29,27 @@ export async function GET(
         : await ensureInitialRoadmapForChild({
             childId: child.id,
             focusAreas: mapFocusAreasToLabel(child.focusAreas),
+            condition: child.condition,
+            birthDate: child.birthDate,
+            routine: child.routine,
+            supportNeed: child.supportNeed,
           });
 
-    const latestInsight = await getLatestInsightForChild(child.id);
+    const [latestInsight, progressEntryCount] = await Promise.all([
+      getLatestInsightForChild(child.id),
+      prisma.progressEntry.count({
+        where: {
+          childId: child.id,
+          deletedAt: null,
+        },
+      }),
+    ]);
 
     return ok({
       items,
-      meta: buildRoadmapMeta(items, latestInsight?.id ?? null),
+      meta: buildRoadmapMeta(items, latestInsight?.id ?? null, {
+        hasMeaningfulProgress: progressEntryCount > 0,
+      }),
     });
   } catch (error) {
     return handleRouteError(error);

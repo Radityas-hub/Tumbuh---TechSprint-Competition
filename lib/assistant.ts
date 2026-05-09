@@ -1,6 +1,16 @@
 import type { Prisma } from "../generated/prisma/client";
 
 import { notFound } from "./api/errors";
+import { evaluateAssistantResponseLog } from "./assistant-evaluator";
+import {
+  buildChildAssistantContext,
+  classifyAssistantIntent,
+  createAssistantResponseLog,
+  generateAssistantAnswer,
+  getAssistantPromptVersion,
+  retrieveAssistantPolicies,
+  retrieveKnowledgeChunks,
+} from "./assistant-rag";
 import { prisma } from "./prisma";
 
 const conversationSelect = {
@@ -68,46 +78,15 @@ function serializeConversation(record: ConversationRecord): SerializedAssistantC
   };
 }
 
-function buildGuardedAssistantReply(question: string, context: { childName?: string | null }) {
-  const normalized = question.toLowerCase();
-
-  if (
-    normalized.includes("obat") ||
-    normalized.includes("dosis") ||
-    normalized.includes("diagnosa") ||
-    normalized.includes("diagnosis")
-  ) {
-    return "Saya tidak bisa memberi diagnosis, obat, atau dosis. Gunakan catatan observasi Anda sebagai bahan diskusi dengan dokter atau profesional yang mendampingi anak.";
-  }
-
-  if (
-    normalized.includes("menyakiti diri") ||
-    normalized.includes("kejang") ||
-    normalized.includes("tidak mau makan") ||
-    normalized.includes("sesak")
-  ) {
-    return "Bila ada tanda bahaya atau kondisi yang terasa mendesak, segera hubungi tenaga medis atau layanan darurat setempat. Saya hanya bisa membantu menyusun observasi dan bukan memberi diagnosis.";
-  }
-
-  const childLabel = context.childName ? `untuk ${context.childName}` : "untuk anak Anda";
-
-  if (normalized.includes("tantrum") || normalized.includes("transisi") || normalized.includes("screen")) {
-    return `Coba fokus pada pola transisi ${childLabel}: catat kapan kejadian muncul, pemicu sebelum perilaku terjadi, dan apa yang membantu anak kembali tenang. Insight ini bukan diagnosis, tetapi bisa membantu Anda menyiapkan diskusi dengan profesional.`;
-  }
-
-  if (normalized.includes("komunikasi") || normalized.includes("bicara") || normalized.includes("kontak mata")) {
-    return `Mulai dari latihan komunikasi singkat ${childLabel} di rutinitas harian yang sama setiap hari. Catat momen respons spontan, meski masih kecil. Jawaban ini bukan diagnosis, melainkan panduan observasi awal untuk dibawa saat konsultasi bila diperlukan.`;
-  }
-
-  return `Mulai dari tiga hal sederhana ${childLabel}: kapan kejadian terjadi, apa pemicunya, dan apa yang membantu. Simpan pola itu selama beberapa hari agar Anda punya bahan observasi yang lebih jelas. Jawaban ini bukan diagnosis dan tidak menggantikan bantuan profesional.`;
-}
-
 export async function createAssistantReply(input: {
   guardianId: string;
   childId?: string | null;
   question: string;
   conversationId?: string | null;
 }) {
+  const startedAt = Date.now();
+  const intent = classifyAssistantIntent(input.question);
+
   const child = input.childId
     ? await prisma.child.findFirst({
         where: {
@@ -126,10 +105,6 @@ export async function createAssistantReply(input: {
     throw notFound("Child not found");
   }
 
-  const reply = buildGuardedAssistantReply(input.question, {
-    childName: child?.name ?? null,
-  });
-
   let conversationId = input.conversationId ?? null;
 
   if (conversationId) {
@@ -140,6 +115,16 @@ export async function createAssistantReply(input: {
       },
       select: {
         id: true,
+        messages: {
+          orderBy: {
+            createdAt: "asc",
+          },
+          take: 8,
+          select: {
+            role: true,
+            content: true,
+          },
+        },
       },
     });
 
@@ -161,23 +146,117 @@ export async function createAssistantReply(input: {
     conversationId = conversation.id;
   }
 
+  const conversationHistory = conversationId
+    ? await prisma.assistantMessage.findMany({
+        where: {
+          conversationId,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        take: 8,
+        select: {
+          role: true,
+          content: true,
+        },
+      })
+    : [];
+
+  const childContext = child ? await buildChildAssistantContext(child.id) : {
+    child: null,
+    snapshot: null,
+    recentProgress: [],
+    latestInsightSummary: null,
+    roadmapTargets: [],
+  };
+
+  const [policies, chunks] = await Promise.all([
+    retrieveAssistantPolicies(intent),
+    retrieveKnowledgeChunks({
+      question: input.question,
+      childContext,
+      limit: 4,
+    }),
+  ]);
+
+  const requestPayload = {
+    question: input.question,
+    intent,
+    childContext,
+    retrievedChunks: chunks.map((chunk) => ({
+      id: chunk.id,
+      citationLabel: chunk.citationLabel,
+      retrievalScore: chunk.retrievalScore ?? null,
+      retrievalReasons: chunk.retrievalReasons ?? [],
+    })),
+    retrievedPolicyIds: policies.map((policy) => policy.id),
+    conversationHistory: conversationHistory.slice(-4),
+    promptVersion: getAssistantPromptVersion(),
+  };
+
+  const generated = await generateAssistantAnswer({
+    question: input.question,
+    intent,
+    context: childContext,
+    chunks,
+    policies,
+    conversationHistory,
+  });
+
+  const reply = generated.structured.answer;
+  const messageMetadata = {
+    rag: true,
+    intent,
+    riskLevel: generated.structured.riskLevel,
+    fallbackUsed: generated.fallbackUsed,
+    promptVersion: getAssistantPromptVersion(),
+    knowledgeChunkIds: chunks.map((chunk) => chunk.id),
+    citations: generated.structured.citations ?? [],
+    policyIds: policies.map((policy) => policy.id),
+    childSnapshotId: childContext.snapshot?.id ?? null,
+    nextObservationIdeas: generated.structured.nextObservationIdeas,
+    followupQuestions: generated.structured.followupQuestions,
+  };
+
   await prisma.assistantMessage.createMany({
     data: [
       {
         conversationId,
         role: "user",
         content: input.question,
+        metadata: {
+          intent,
+        },
       },
       {
         conversationId,
         role: "assistant",
         content: reply,
-        metadata: {
-          guarded: true,
-        },
+        metadata: messageMetadata,
       },
     ],
   });
+
+  const responseLog = await createAssistantResponseLog({
+    guardianId: input.guardianId,
+    childId: child?.id ?? null,
+    conversationId,
+    question: input.question,
+    intent,
+    snapshotIds: childContext.snapshot ? [childContext.snapshot.id] : [],
+    progressEntryIds: childContext.recentProgress.map((entry) => entry.id),
+    knowledgeChunkIds: chunks.map((chunk) => chunk.id),
+    policyIds: policies.map((policy) => policy.id),
+    modelName: generated.modelName,
+    requestPayload: requestPayload as unknown as Prisma.InputJsonValue,
+    responseText: reply,
+    responseJson: generated.rawResponse,
+    safetyOutcome: generated.structured.riskLevel,
+    fallbackUsed: generated.fallbackUsed,
+    latencyMs: Date.now() - startedAt,
+  });
+
+  await evaluateAssistantResponseLog(responseLog.id);
 
   const conversation = await prisma.assistantConversation.findUniqueOrThrow({
     where: {

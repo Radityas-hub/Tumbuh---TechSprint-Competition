@@ -6,6 +6,7 @@ import type { Prisma } from "../generated/prisma/client";
 import { ConsentScope, InputType, JobStatus, MediaStatus } from "../generated/prisma/enums";
 
 import { badRequest, forbidden, notFound } from "./api/errors";
+import { generateEntryInsightForProgressEntry } from "./insights";
 import { prisma } from "./prisma";
 
 const mediaAssetSelect = {
@@ -435,6 +436,23 @@ export async function processOwnedMediaAsset(
     },
     select: mediaAssetSelect,
   });
+
+  if (updatedAsset.progressEntryId) {
+    const entryInsight = await generateEntryInsightForProgressEntry(updatedAsset.progressEntryId).catch(
+      () => null,
+    );
+
+    await prisma.progressEntry.update({
+      where: {
+        id: updatedAsset.progressEntryId,
+      },
+      data: {
+        insight:
+          entryInsight?.summary ??
+          (typeof processedOutput.summary === "string" ? processedOutput.summary : null),
+      },
+    });
+  }
 
   return serializeMediaAsset(updatedAsset);
 }
