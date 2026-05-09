@@ -41,15 +41,7 @@ export async function getSupabaseAccessToken(): Promise<string | null> {
 }
 
 export function isSupabaseAuthConfigured() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (typeof window !== "undefined" && !url) {
-    // Bantu debug: kalau banner "belum dikonfigurasi" muncul, cek console dulu.
-    // eslint-disable-next-line no-console
-    console.warn("[tumbuh] NEXT_PUBLIC_SUPABASE_URL kosong di bundle:", {
-      url,
-      hasKey: Boolean(key),
-    });
-  }
-  return Boolean(url && key);
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
 }
