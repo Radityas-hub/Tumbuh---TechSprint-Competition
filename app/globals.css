@@ -1211,16 +1211,17 @@ a {
 .product-shell {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
-  gap: 0;
+  display: block;
   min-height: 100vh;
   background: var(--surface-solid);
+  padding-left: 250px;
 }
 
 .sidebar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  width: 250px;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -1231,6 +1232,8 @@ a {
   background: var(--surface-solid);
   box-shadow: none;
   backdrop-filter: none;
+  overflow: hidden;
+  z-index: 10;
 }
 
 .sidebar-brand {
@@ -3004,7 +3007,7 @@ textarea:focus {
 
 @media (max-width: 900px) {
   .product-shell {
-    grid-template-columns: 1fr;
+    padding-left: 0;
   }
 
   .workspace {
@@ -3014,9 +3017,11 @@ textarea:focus {
 
   .sidebar {
     position: relative;
+    width: 100%;
     height: auto;
     padding: var(--space-4);
     border-bottom: 1px solid var(--line);
+    overflow: visible;
   }
 }
 
