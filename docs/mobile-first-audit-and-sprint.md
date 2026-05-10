@@ -543,58 +543,85 @@ input, select, textarea { font-size: 16px; }
 
 ---
 
-### 🟡 Sprint 2 — Mobile shell: hamburger drawer + bottom tab bar
+### 🟡 Sprint 2 — Mobile shell: hamburger drawer + bottom tab bar ✅ SELESAI 10 Mei 2026
+
+**Status:** Merged ke main `80dff7e` lewat branch `feat/mobile-first-phase-2` (commit `9d71354`). User acc via test manual.
 
 **Goal:** Di ≤ 900 px, sidebar jadi drawer off-canvas, muncul hamburger top bar, muncul bottom tab bar 5 item. Desktop tetap sidebar 250 px persistent.
 
-**Branch:** `feat/mobile-first-phase-2` (branched dari Sprint 1 setelah merge)
+**Branch:** `feat/mobile-first-phase-2` (branched dari main setelah Sprint 1)
 
 **Pre-flight**
-- [ ] Merge Sprint 1 ke main, `git checkout main && git pull`
-- [ ] Branch baru `feat/mobile-first-phase-2`
+- [x] Merge Sprint 1 ke main, `git checkout main && git pull`
+- [x] Branch baru `feat/mobile-first-phase-2`
 
 **P1 — Komponen baru**
-- [ ] `app/tumbuh/MobileTopBar.tsx` — minimal:
-  - [ ] Brand + hamburger button (`aria-label="Buka menu"`, `aria-expanded`, `aria-controls="mobile-sidebar"`)
-  - [ ] Hidden via CSS `display: none` di desktop
-  - [ ] Height 56 px + `env(safe-area-inset-top)`
-- [ ] `app/tumbuh/MobileTabBar.tsx` — minimal:
-  - [ ] 5 tab: Dashboard, Roadmap, Catatan, Edukasi, Lainnya
-  - [ ] "Lainnya" opens drawer berisi Konsultasi + Pengaturan
-  - [ ] `role="tablist"`, `role="tab"` di item, `aria-selected` sesuai `screen`
-  - [ ] Height 64 px + `env(safe-area-inset-bottom)`
+- [x] `app/tumbuh/MobileTopBar.tsx`:
+  - [x] Brand + hamburger button (`aria-label="Buka menu navigasi"`, `aria-expanded`, `aria-controls="mobile-nav-drawer"`)
+  - [x] Hidden via CSS `display: none` di desktop
+  - [x] Height 56 px + `env(safe-area-inset-top)`
+- [x] `app/tumbuh/MobileTabBar.tsx`:
+  - [x] 5 tab: Dashboard, Roadmap, Catatan, Edukasi, Lainnya
+  - [x] "Lainnya" opens sheet berisi Konsultasi + Pengaturan
+  - [x] `role="tablist"`, `role="tab"` di item, `aria-selected` sesuai `screen`
+  - [x] Active state juga highlight saat user di consultation/settings (isOnMoreScreen)
+  - [x] Height 64 px + `env(safe-area-inset-bottom)`
 
 **P2 — AppShell refactor**
-- [ ] Tambah state `mobileNavOpen` + handler di `AppShell.tsx`
-- [ ] Render `<MobileTopBar />` + `<MobileTabBar />` di semua viewport (CSS-toggled)
-- [ ] Wrap `.sidebar` dengan class conditional `is-open`
-- [ ] Tambah backdrop element (`.sidebar-backdrop`) dengan toggle class
-- [ ] Focus trap basic: saat drawer open, focus pertama-nya ke close button, escape untuk close
+- [x] Tambah state `navOpen` + `moreOpen` di `AppShell.tsx`
+- [x] Render `<MobileTopBar />` + `<MobileTabBar />` di semua viewport (CSS-toggled)
+- [x] Wrap `.sidebar` dengan `.sidebar-inner` + class conditional `is-open`
+- [x] Tombol close X di `.sidebar-header` (mobile only via CSS)
+- [x] Tambah backdrop element `.sidebar-backdrop` dengan toggle class
+- [x] ESC key listener saat drawer/sheet open
+- [x] `handleNavigate` auto-close drawer + sheet ketika user pilih nav item
 
 **P3 — CSS mobile shell**
-- [ ] `@media (max-width: 900px)`:
-  - [ ] `.sidebar { position: fixed; transform: translateX(-100%); transition: transform 240ms ease; z-index: 40; background: var(--surface-solid) }`
-  - [ ] `.sidebar.is-open { transform: translateX(0) }`
-  - [ ] `.sidebar-backdrop` + `.is-open`
-  - [ ] `.product-shell { padding-bottom: calc(64px + env(safe-area-inset-bottom)) }`
-  - [ ] `.workspace { border-radius: 0 }`
-  - [ ] Hide existing sidebar auto-collapse (`grid-template-columns` hack yang ada sekarang di `.sidebar-section`)
-- [ ] Tab bar CSS (lihat research doc § 3.3)
+- [x] Default: semua chrome mobile hidden (`.mobile-topbar, .mobile-tabs, .sidebar-backdrop, .sidebar-close, .mobile-sheet-backdrop, .mobile-more-sheet { display: none }`)
+- [x] `@media (max-width: 900px)`:
+  - [x] `.mobile-topbar { display: flex; sticky; safe-area-inset-top; 56 + safe px }`
+  - [x] `.sidebar { position: fixed; transform: translateX(-100%); transition: transform 240ms ease; z-index: 40; width: min(280px, 85vw); 100dvh }`
+  - [x] `.sidebar.is-open { transform: translateX(0) }`
+  - [x] `.sidebar-backdrop { inset: 0; bg rgba(16,35,31,0.45); opacity 0 → 1; z-index: 35 }`
+  - [x] `.product-shell { padding-left: 0; padding-bottom: calc(64px + env(safe-area-inset-bottom)); min-height 100dvh }`
+  - [x] `.workspace { border-radius: 0 }` (sudah dari Sprint 1)
+  - [x] `.mobile-tabs { position: fixed bottom; grid 5-col; 64 + safe-area-inset-bottom; z-index: 30; safe-area-inset-left/right }`
+  - [x] `.mobile-tab { min-height: 48px; gap 2px; font-size 11px }`
+  - [x] `.mobile-tab.is-active { color: var(--teal-dark) }`
+  - [x] `.mobile-more-sheet { slide-up animation 220ms; safe-area-inset-bottom; border-radius top only }`
+  - [x] Override `.sidebar-section` 3-col/2-col hack lama dari breakpoint 900/600 jadi 1-col (tidak relevan setelah drawer)
 
 **P4 — Body scroll lock saat drawer open**
-- [ ] Saat `mobileNavOpen`, set `body { overflow: hidden }` — cegah content scroll di background
+- [x] Saat `navOpen || moreOpen`, `document.body.style.overflow = "hidden"` via `useEffect`; restore previous on cleanup
 
 **QA Sprint 2**
-- [ ] Drawer buka dari hamburger, close dari backdrop tap + Escape key
-- [ ] Tab bar active state sync dengan `screen`
-- [ ] "Lainnya" tab membuka submenu (sheet)
-- [ ] Desktop ≥ 901 px: tidak muncul topbar / tabbar / drawer
-- [ ] Focus trap: Tab key di drawer tidak escape ke konten di belakang
-- [ ] Reduced motion: transisi `transform` di-disable
+- [x] Drawer buka dari hamburger, close dari backdrop tap + Escape key + close button X + nav item click
+- [x] Tab bar active state sync dengan `screen`
+- [x] "Lainnya" tab highlight saat user di consultation/settings screen
+- [x] "Lainnya" sheet slide-up, close via backdrop + X + ESC + item click
+- [x] Desktop ≥ 901 px: tidak muncul topbar / tabbar / drawer / backdrop / sheet
+- [x] Reduced motion: transisi `transform` drawer + sheet animation di-disable
+- [x] TSC clean, diagnostics clean
+- [x] User acc: **10 Mei 2026 — user approve setelah test manual**
 
 **Commit & push**
-- [ ] `feat(mobile): hamburger drawer + bottom tab bar for mobile shell`
-- [ ] Tunggu konfirmasi user
+- [x] Commit: `feat(mobile): sprint 2 — hamburger drawer + bottom tab bar shell` (`9d71354`)
+- [x] Push ke `origin/feat/mobile-first-phase-2`
+- [x] Merge `--no-ff` ke main (`80dff7e`)
+- [x] Push `origin/main`
+
+**Diff summary:**
+- `app/tumbuh/MobileTopBar.tsx` +32 (new)
+- `app/tumbuh/MobileTabBar.tsx` +78 (new)
+- `app/tumbuh/AppShell.tsx` +157/−29 (state + ESC + scroll lock + sheet rendering)
+- `app/globals.css` +303 (Sprint 2 block: default-hide chrome + @media 900px shell overrides + sheet animation)
+
+**Known follow-ups untuk Sprint 3 (opsional):**
+- FAB "Catat hari ini" sticky di dashboard mobile (thumb zone boost)
+- Focus trap proper di drawer (Tab key tidak escape ke background konten)
+- Swipe-to-close drawer (native gesture)
+- PWA manifest + Apple touch icons + splash screens
+- Auto-hide top bar on scroll down (nice-to-have)
 
 ---
 
