@@ -4957,3 +4957,306 @@ textarea:focus {
 }
 
 /* End of Mobile-First Sprint 1 block */
+
+
+/* =========================================================
+   MOBILE-FIRST SPRINT 2 — shell: top bar + drawer + bottom tab
+   Desktop (>900px) tidak berubah: mobile chrome di-hide via display:none.
+   ========================================================= */
+
+/* Desktop-hidden by default */
+.mobile-topbar,
+.mobile-tabs,
+.sidebar-backdrop,
+.sidebar-close,
+.mobile-sheet-backdrop,
+.mobile-more-sheet {
+  display: none;
+}
+
+/* Sidebar at desktop: keep existing layout with .sidebar-inner wrapper */
+.sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  gap: var(--space-6);
+}
+
+.sidebar-header {
+  display: contents;
+}
+
+@media (max-width: 900px) {
+  /* Top bar */
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) var(--space-4) 0;
+    background: var(--surface-solid);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .mobile-topbar-menu {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-left: -8px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink);
+  }
+
+  .mobile-topbar-menu:hover,
+  .mobile-topbar-menu:focus-visible {
+    background: var(--bg-strong);
+  }
+
+  .mobile-topbar-brand {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0;
+  }
+
+  /* Shell layout override */
+  .product-shell {
+    padding-left: 0;
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Sidebar becomes off-canvas drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(280px, 85vw);
+    height: 100vh;
+    height: 100dvh;
+    transform: translateX(-100%);
+    transition: transform 240ms ease;
+    padding: 0;
+    background: var(--surface-solid);
+    border-right: 1px solid var(--line);
+    z-index: 40;
+    overflow-y: auto;
+  }
+
+  .sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-inner {
+    padding: calc(var(--space-4) + env(safe-area-inset-top)) var(--space-4)
+      calc(var(--space-6) + env(safe-area-inset-bottom));
+    gap: var(--space-5);
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-4);
+  }
+
+  .sidebar-brand {
+    margin-bottom: 0;
+  }
+
+  .sidebar-close {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-right: -8px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--muted);
+  }
+
+  .sidebar-close:hover,
+  .sidebar-close:focus-visible {
+    background: var(--bg-strong);
+    color: var(--ink);
+  }
+
+  /* Backdrop behind drawer */
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 35, 31, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+    z-index: 35;
+  }
+
+  .sidebar-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Bottom tab bar */
+  .mobile-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
+    background: var(--surface-solid);
+    border-top: 1px solid var(--line);
+    z-index: 30;
+  }
+
+  .mobile-tab {
+    display: grid;
+    place-items: center;
+    gap: 2px;
+    min-height: 48px;
+    padding: 8px 4px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .mobile-tab > svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-tab.is-active {
+    color: var(--teal-dark);
+  }
+
+  .mobile-tab.is-active > svg {
+    color: var(--teal-dark);
+  }
+
+  .mobile-tab:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: -4px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* "Lainnya" bottom sheet */
+  .mobile-sheet-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 35, 31, 0.45);
+    opacity: 1;
+    z-index: 45;
+  }
+
+  .mobile-more-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: var(--space-5) var(--space-5)
+      calc(var(--space-5) + env(safe-area-inset-bottom));
+    background: var(--surface-solid);
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    animation: mobileSheetSlideUp 220ms ease;
+  }
+
+  .mobile-more-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+  }
+
+  .mobile-more-head strong {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .mobile-more-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 0 var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface-solid);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+  }
+
+  .mobile-more-item.active {
+    background: var(--teal-dark);
+    color: #ffffff;
+    border-color: transparent;
+  }
+
+  .mobile-more-item.active > svg {
+    color: #ffffff;
+  }
+
+  @keyframes mobileSheetSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* Override existing sidebar 3-col hack from previous breakpoint */
+  .sidebar-section {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  /* Reduced motion: disable drawer + sheet transitions */
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar,
+    .sidebar-backdrop {
+      transition: none;
+    }
+    .mobile-more-sheet {
+      animation: none;
+    }
+  }
+}
+
+/* Re-enable small-size override — 2-col hack di 600px tidak relevan lagi karena
+   sidebar jadi drawer, bukan block */
+@media (max-width: 600px) {
+  .sidebar-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* End of Mobile-First Sprint 2 block */
