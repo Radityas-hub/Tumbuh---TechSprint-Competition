@@ -220,7 +220,7 @@ export function Dashboard({
               </button>
             </div>
             <div className="dash-pulse-dots">
-              {["S", "S", "R", "K", "J", "S", "M"].map((day, index) => (
+              {getWeekdayLabels(todayIndex).map((day, index) => (
                 <div className="dash-dot-col" key={`${day}-${index}`}>
                   <span
                     className={`dash-dot ${
@@ -302,9 +302,9 @@ export function Dashboard({
 }
 
 function DashboardEmpty({
-  guardianName,
+  guardianName: _guardianName,
   ctx,
-  go,
+  go: _go,
   isAuthenticated,
   onAddNote,
 }: {
@@ -464,4 +464,20 @@ function areaToStroke(area: string): string {
     case "Akademik": return "var(--coral)";
     default: return "var(--teal)";
   }
+}
+
+/**
+ * Compute weekday labels for the 7-day window based on todayIndex.
+ */
+function getWeekdayLabels(todayIndex: number): string[] {
+  const allDays = ["M", "S", "S", "R", "K", "J", "S"];
+  const todayJsDay = new Date().getDay();
+
+  const labels: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const daysBeforeToday = todayIndex - i;
+    const jsDay = ((todayJsDay - daysBeforeToday) % 7 + 7) % 7;
+    labels.push(allDays[jsDay]);
+  }
+  return labels;
 }
