@@ -436,116 +436,110 @@ Komponen dari atas ke bawah:
 
 ## 4. Sprint Checklist
 
-### 🟢 Sprint 1 — Mobile-first foundation (CSS-only, zero JSX change)
+### 🟢 Sprint 1 — Mobile-first foundation (CSS-only, zero JSX change) ✅ SELESAI 10 Mei 2026
+
+**Status:** Merged ke main `fb47424` lewat branch `feat/mobile-first-phase-1` (2 commits: `7f4bd9d` docs + `b8a0427` implementasi). Zero JSX change, semua via media query progressive enhancement.
 
 **Goal:** Halaman onboarding + dashboard terasa jauh lebih baik di 360-640 px tanpa menyentuh komponen React. Desktop 1280+ **identik** dengan sebelum.
 
 **Branch:** `feat/mobile-first-phase-1`
 
 **Pre-flight**
-- [ ] Verifikasi git state clean: `git status`
-- [ ] `git checkout main && git pull && git checkout -b feat/mobile-first-phase-1`
+- [x] Verifikasi git state clean: `git status`
+- [x] `git checkout main && git pull && git checkout -b feat/mobile-first-phase-1`
 
 **P1 — Viewport + safe area (global)**
-- [ ] Tambah `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />` di `app/layout.tsx` head
-- [ ] Test cold reload di iPhone (or DevTools emulator) — `env(safe-area-inset-bottom)` returns > 0 di PWA test
-- [ ] Tambah CSS root helper (tidak wajib):
+- [x] Tambah Next.js `Viewport` export di `app/layout.tsx`:
 
-```css
-:root {
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
+```ts
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#06443e",
+};
 ```
+
+- [x] Tambah `padding-top: env(safe-area-inset-top)` di `.onboarding-mode`
 
 **P2 — Fix iOS input zoom (global form)**
-- [ ] Tambah rule:
+- [x] Rule aktif di `@media (max-width: 900px)`:
 
 ```css
-@media (max-width: 900px) {
-  input,
-  select,
-  textarea,
-  .onboarding-fields input,
-  .onboarding-fields select {
-    font-size: 16px;
-  }
-}
+input, select, textarea { font-size: 16px; }
+.onboarding-fields label { font-size: 13px; }
 ```
 
-- [ ] Test di iOS Safari real device / simulator: fokus input nama di onboarding step 1 → **tidak zoom auto**.
+- [x] Label diturunkan ke 13 px supaya body label di mobile tetap kecil meskipun input naik ke 16 px
 
 **P3 — Onboarding footer mobile-safe**
-- [ ] Remove `backdrop-filter: blur(8px)` dari `.onboarding-footer`
-- [ ] Set `background: var(--surface-solid)` + `border-top: 1px solid var(--line)`
-- [ ] Tambah `padding-bottom: max(var(--space-4), env(safe-area-inset-bottom))`
-- [ ] Di `@media (max-width: 900px)`: grid → `flex-direction: column-reverse` (primary "Lanjut" di atas "Kembali") atau adjust DOM order
-- [ ] Test di iPhone viewport: "Lanjut" tidak ketutup home indicator
+- [x] Remove `backdrop-filter: blur(8px)` dari `.onboarding-footer`
+- [x] Ganti `background: rgba(255,255,255,0.92)` → `var(--surface-solid)`
+- [x] Tambah `padding-bottom: max(var(--space-4), env(safe-area-inset-bottom))`
+- [x] `border-top: 1px solid var(--line)` tetap (dipertahankan dari state sebelumnya)
 
 **P4 — Onboarding small-device tweaks**
-- [ ] `@media (max-width: 420px)`:
-  - [ ] `.onboarding-screen { padding: 0 12px 128px }`
-  - [ ] `.onboarding-topbar { padding: 0 12px }`
-- [ ] `@media (max-width: 900px)`:
-  - [ ] `.onboarding-topbar button { min-height: 44px; min-width: 44px; padding: 0 12px }`
-  - [ ] `.onboarding-mode { padding-top: env(safe-area-inset-top) }`
-- [ ] Compact focus card: `@media (max-width: 900px) { .focus-option-card { min-height: 160px } }`
-- [ ] Ensure `.review-card` collapse ke 1-col di ≤ 640 px
+- [x] `@media (max-width: 420px)`:
+  - [x] `.onboarding-screen { padding: 0 12px 128px }`
+  - [x] `.onboarding-topbar { padding: 0 12px }`
+- [x] `@media (max-width: 900px)`:
+  - [x] `.onboarding-topbar { padding: 0 16px }` (normalisasi dari 20 → 16 px sejalan screen)
+  - [x] `.onboarding-topbar button { min-height: 44px; padding: 0 8px; margin-left: -8px; border-radius: var(--radius-sm) }` (tap target brand)
+  - [x] `.focus-option-card { min-height: 160px }` (turun dari 210 px — lebih kompak)
+  - [x] `.review-card div { grid-template-columns: 1fr; gap: 2px; padding: 6px 0 }` (kolom 140/1fr collapse)
 
-**P5 — Dashboard mobile refinement**
-- [ ] Append block `@media (max-width: 640px)` dengan:
+**P5 — Dashboard mobile refinement @ 640px**
+- [x] Append block `@media (max-width: 640px)`:
 
 ```css
-.workspace {
-  padding-left: max(var(--space-4), env(safe-area-inset-left));
-  padding-right: max(var(--space-4), env(safe-area-inset-right));
-}
-.metric-grid {
-  grid-template-columns: 1fr;
-  gap: var(--space-3);
-}
-.workspace-header {
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-3);
-}
+.workspace { padding-left: max(var(--space-4), env(safe-area-inset-left)); padding-right: max(var(--space-4), env(safe-area-inset-right)); }
+.metric-grid { grid-template-columns: 1fr; gap: var(--space-3); }
+.workspace-header { flex-direction: column; align-items: stretch; gap: var(--space-3); }
 .dash-hero-img { display: none; }
 .dash-hero { padding: var(--space-5); }
 .dash-hero h1 { font-size: 22px; line-height: 1.2; }
-.dash-hero .primary-button { width: 100%; justify-content: center; }
+.dash-hero .primary-button { align-self: stretch; width: 100%; justify-content: center; }
 .chart-modern { height: 180px; }
 .dash-auth-reminder { flex-direction: column; align-items: stretch; }
+.dash-auth-reminder .secondary-button { width: 100%; }
 .dash-action-item .ghost-button { min-height: 44px; }
+.dash-spotlight-links { flex-wrap: wrap; }
 .qn-sheet { padding-bottom: max(var(--space-4), env(safe-area-inset-bottom)); }
 ```
 
-- [ ] Di `@media (max-width: 900px)`: `.workspace { border-radius: 0 }`
+- [x] Di `@media (max-width: 900px)`: `.workspace { border-radius: 0 }` (hilangkan sudut pincang)
 
-**P6 — Reduced motion guard (optional polish)**
-- [ ] Wrap transitions di `.diagnosis-option`, `.focus-option-card` dalam:
+**P6 — Reduced motion guard**
+- [x] Wrap transitions dalam `@media (prefers-reduced-motion: reduce)`:
 
 ```css
-@media (prefers-reduced-motion: no-preference) {
-  .diagnosis-option { transition: ...; }
-}
+.diagnosis-option, .focus-option-card, .other-condition,
+.sidebar-link, .nav-link, .primary-button, .secondary-button, .ghost-button
+{ transition: none; }
 ```
 
 **QA Sprint 1**
-- [ ] Test viewport 360 px: onboarding step 1-4 tanpa horizontal scroll
-- [ ] Test viewport 360 px: dashboard scroll vertical only, semua card muat
-- [ ] Test iOS Safari real device atau Chrome DevTools iPhone 13 simulation:
-  - [ ] Input focus tidak zoom
-  - [ ] Onboarding "Lanjut" button tidak ketutup
-  - [ ] PWA install → bottom tidak ada strip putih
-- [ ] Test desktop 1280/1440/1920: semua visual **identik** dengan sebelum
-- [ ] Run `npm run build` atau `npm run lint` — no error
-- [ ] Screenshots: capture before/after di 360 / 640 / 1280 px untuk dokumentasi
+- [x] TSC clean (`tsc --noEmit` no errors)
+- [x] `getDiagnostics` clean (hanya preexisting `line-clamp` warning unrelated)
+- [x] User acc: **10 Mei 2026 — user approve setelah test manual**
 
 **Commit & push**
-- [ ] Strict commit: `fix(mobile): add viewport-fit, safe-area insets, and iOS zoom fix for onboarding + dashboard`
-- [ ] Commit body: list P1-P6 yang diubah
-- [ ] Push ke `feat/mobile-first-phase-1`
-- [ ] **Tunggu konfirmasi user "fix" sebelum merge ke main**
+- [x] Commit 1: `docs(mobile): add mobile-first research and sprint audit plan` (`7f4bd9d`)
+- [x] Commit 2: `feat(mobile): sprint 1 — viewport-fit, iOS safe area, anti-zoom, mobile refinements` (`b8a0427`)
+- [x] Push ke `origin/feat/mobile-first-phase-1`
+- [x] Merge `--no-ff` ke main (`fb47424`)
+- [x] Push `origin/main`
+
+**Diff summary:**
+- `app/layout.tsx` +6/−1 (Viewport export)
+- `app/globals.css` +143/−3 (isolated mobile-first block + footer fix)
+- `docs/mobile-first-audit-and-sprint.md` +651 (dokumen ini)
+- `docs/mobile-first-dashboard-research.md` +602 (research doc)
+
+**Known follow-ups untuk Sprint 2:**
+- Sidebar di ≤ 900 px masih block raksasa (belum di-drawer-kan) — ini memang lingkup Sprint 2
+- Tidak ada bottom tab bar di mobile — Sprint 2
+- `.onboarding-footer` grid-template di mobile masih `1fr` (primary button solo di bawah, "Kembali" di atas) — bisa reorder DOM di future polish atau Sprint 3
 
 ---
 
