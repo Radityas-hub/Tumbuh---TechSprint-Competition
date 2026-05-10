@@ -1,38 +1,36 @@
 import {
-  Activity,
+  AlertTriangle,
+  ChevronDown,
   ChevronRight,
-  LineChart,
+  CheckCircle2,
   LogIn,
   Plus,
   Sparkles,
-  TimerReset,
-  Utensils,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 import {
-  Metric,
-  Panel,
-  RoadmapStrip,
-  WorkspaceHeader,
-} from "./components";
-import { dashboardInstructionRoadmap } from "./constants";
-import {
-  chartPanelSubtitle,
-  dashboardBody,
   dashboardGreeting,
+  dashboardNarrative,
   insightFallbackText,
-  personalizedActivityPlaceholders,
   toChildContext,
+  weeklyPulseNarrative,
+  childReferenceName,
 } from "./personalize";
+import { QuickNote } from "./QuickNote";
+import { ProductTour } from "./ProductTour";
 import { DashboardSkeleton } from "./skeletons";
 import type {
   ChildApiModel,
   ChildProfile,
   DashboardData,
+  DashboardFocusTarget,
+  ProgressEntry,
+  Area,
   Screen,
 } from "./types";
-import { getChartBarHeight } from "./utils";
 
 export function Dashboard({
   profile,
@@ -42,6 +40,7 @@ export function Dashboard({
   isAuthenticated,
   isLoading,
   activeChild,
+  onAddEntry,
 }: {
   profile: ChildProfile;
   go: (screen: Screen) => void;
@@ -50,226 +49,435 @@ export function Dashboard({
   isAuthenticated: boolean;
   isLoading: boolean;
   activeChild: ChildApiModel | null;
+  onAddEntry?: (entry: {
+    area: Area;
+    inputType: ProgressEntry["type"];
+    note: string;
+    title?: string;
+    file?: File | null;
+  }) => Promise<void>;
 }) {
+  const [quickNoteOpen, setQuickNoteOpen] = useState(false);
+
   if (isLoading) {
     return <DashboardSkeleton guardianName={guardianName} />;
   }
 
   const ctx = toChildContext(profile, activeChild);
+  const childName = childReferenceName(ctx);
   const hasDashboardData = Boolean(
     dashboardData && !dashboardData.meta.shouldUsePlaceholder,
   );
-  const chart = hasDashboardData ? (dashboardData?.chart ?? []) : [];
-  const maxChartValue = Math.max(...chart.map((item) => item.value), 0);
-  const activities = hasDashboardData
-    ? (dashboardData?.activities ?? [])
-    : personalizedActivityPlaceholders(ctx);
-  const roadmapPreview = hasDashboardData
-    ? (dashboardData?.roadmapPreview ?? [])
-    : [];
-  const latestInsight =
-    dashboardData?.latestInsight?.summary || insightFallbackText(ctx);
-  const latestInsightStatus = hasDashboardData
-    ? (dashboardData?.latestInsight?.status ?? "EMPTY")
-    : "EMPTY";
-  const latestInsightMeta =
-    latestInsightStatus === "PENDING"
-      ? "Insight sedang diperbarui dari catatan terbaru."
-      : latestInsightStatus === "STALE"
-        ? "Ada data baru. Insight terakhir masih ditampilkan sambil menunggu pembaruan."
-        : latestInsightStatus === "FAILED"
-          ? "Pembaruan insight terakhir gagal. Ringkasan sebelumnya tetap ditampilkan."
-          : dashboardData?.latestInsight?.generatedAt
-            ? `Insight terakhir diperbarui ${new Date(dashboardData.latestInsight.generatedAt).toLocaleString("id-ID")}.`
-            : "Panel ini akan berisi ringkasan otomatis begitu ada catatan baru.";
+
+  const openQuickNote = () => {
+    if (onAddEntry) {
+      setQuickNoteOpen(true);
+    } else {
+      go("progress");
+    }
+  };
+
+  if (!hasDashboardData) {
+    return (
+      <>
+        <DashboardEmpty
+          guardianName={guardianName}
+          ctx={ctx}
+          go={go}
+          isAuthenticated={isAuthenticated}
+          onAddNote={openQuickNote}
+        />
+        {onAddEntry && (
+          <QuickNote
+            open={quickNoteOpen}
+            onClose={() => setQuickNoteOpen(false)}
+            onSubmit={onAddEntry}
+            childName={childName}
+          />
+        )}
+        <ProductTour variant="empty" />
+      </>
+    );
+  }
+
+  const activities = dashboardData?.activities ?? [];
+  const spotlight = dashboardData?.spotlight ?? null;
+  const focusTargets = dashboardData?.focusTargets ?? [];
+  const dailyDots = dashboardData?.dailyDots ?? [];
+  const todayIndex = dashboardData?.meta.todayIndex ?? 6;
+  const latestInsight = dashboardData?.latestInsight;
+  const notesThisWeek = dashboardData?.metrics.notesThisWeek ?? 0;
+  const delta = dashboardData?.trend.delta ?? 0;
+  const alertCount = dashboardData?.metrics.alertCount ?? 0;
+  const achievedTargets = dashboardData?.metrics.achievedTargets ?? 0;
+
+  const closestTarget =
+    focusTargets.length > 0 && focusTargets[0].progressPercent >= 70
+      ? focusTargets[0].title
+      : null;
+
+  const narrative = dashboardNarrative(ctx, {
+    notesThisWeek,
+    delta,
+    alertCount,
+    achievedTargets,
+    closestTarget,
+  });
+
+  const insightSummary = latestInsight?.summary || insightFallbackText(ctx);
+  const insightStatus = latestInsight?.status ?? "EMPTY";
+  const insightMeta =
+    insightStatus === "PENDING"
+      ? "Sedang menyusun ringkasan dari catatan terbaru..."
+      : latestInsight?.generatedAt
+        ? `Diperbarui ${new Date(latestInsight.generatedAt).toLocaleDateString("id-ID", { day: "numeric", month: "long" })}`
+        : "";
 
   return (
-    <>
-      <WorkspaceHeader
-        title={dashboardGreeting(new Date().getHours(), guardianName)}
-        body={dashboardBody(ctx, hasDashboardData)}
-        action={
-          isAuthenticated ? (
-            <button className="primary-button" onClick={() => go("progress")}>
-              <Plus size={18} /> Catat perkembangan
-            </button>
-          ) : (
-            <Link className="primary-button" href="/login">
-              <LogIn size={16} /> Tautkan akun
-            </Link>
-          )
-        }
-      />
-      {!isAuthenticated ? (
-        <Panel className="auth-reminder">
-          <div>
-            <strong>Simpan progres anak di akun Anda</strong>
-            <p>
-              Catatan, foto, dan roadmap baru bisa disimpan permanen setelah
-              akun ditautkan. Saat ini Anda sedang menjelajahi dashboard dalam
-              mode tamu.
+    <div className="dash">
+      {/* Hero — full width, with illustration */}
+      <section className="dash-hero">
+        <div className="dash-hero-content">
+          <h1>{dashboardGreeting(new Date().getHours(), guardianName)}</h1>
+          <p>{narrative}</p>
+          <button className="primary-button" onClick={openQuickNote}>
+            <Plus size={18} /> Catat hari ini
+          </button>
+        </div>
+        <div className="dash-hero-img">
+          <Image
+            src="/images/dashboard.png"
+            alt=""
+            width={180}
+            height={180}
+            priority
+          />
+        </div>
+      </section>
+
+      {/* Spotlight — only rendered when there's actual alert data */}
+      {spotlight && spotlight.message && (
+        <section className="dash-spotlight">
+          <span className="dash-spotlight-icon">
+            <AlertTriangle size={18} />
+          </span>
+          <div className="dash-spotlight-body">
+            <strong>Perlu perhatian</strong>
+            <p>{spotlight.message}</p>
+            <div className="dash-spotlight-links">
+              <button className="text-button" onClick={() => go("roadmap")}>
+                Lihat insight <ChevronRight size={14} />
+              </button>
+              <button className="text-button" onClick={() => go("consultation")}>
+                Siapkan konsultasi <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Fresh layout: asymmetric bento-style grid */}
+      <div className="dash-bento">
+        {/* Left column — tall: daily actions stacked with pulse */}
+        <div className="dash-col-left">
+          {/* Daily actions — no card wrapper, just content */}
+          <div className="dash-actions">
+            <h2>Yang bisa dilakukan hari ini</h2>
+            {activities.length === 0 ? (
+              <div className="dash-action-item">
+                <div>
+                  <strong>Tambahkan catatan pertama</strong>
+                  <p>Satu kalimat tentang apa yang Anda perhatikan sudah cukup.</p>
+                </div>
+                <button className="ghost-button" onClick={openQuickNote}>
+                  Catat
+                </button>
+              </div>
+            ) : (
+              activities.slice(0, 2).map((activity) => (
+                <div className="dash-action-item" key={activity.title}>
+                  <div>
+                    <strong>{activity.title}</strong>
+                    <p>{activity.body}</p>
+                    <small className={`dash-area-tag ${areaToTone(activity.area)}`}>
+                      {activity.area}
+                    </small>
+                  </div>
+                  <button className="ghost-button" onClick={openQuickNote}>
+                    <CheckCircle2 size={14} /> Sudah
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Weekly pulse — inline, compact */}
+          <div className="dash-pulse">
+            <div className="dash-pulse-header">
+              <h3>Ritme minggu ini</h3>
+              <button className="text-button" onClick={() => go("progress")}>
+                Semua catatan <ChevronRight size={14} />
+              </button>
+            </div>
+            <div className="dash-pulse-dots">
+              {getWeekdayLabels(todayIndex).map((day, index) => (
+                <div className="dash-dot-col" key={`${day}-${index}`}>
+                  <span
+                    className={`dash-dot ${
+                      index > todayIndex
+                        ? "future"
+                        : dailyDots[index]
+                          ? "filled"
+                          : "empty"
+                    }`}
+                  />
+                  <small>{day}</small>
+                </div>
+              ))}
+            </div>
+            <p className="dash-pulse-text">
+              {weeklyPulseNarrative(ctx, { notesThisWeek, delta, todayIndex })}
             </p>
           </div>
-          <Link className="secondary-button" href="/login">
-            <LogIn size={16} /> Masuk atau daftar
-          </Link>
-        </Panel>
-      ) : null}
-      <div className="metric-grid">
-        <Metric
-          label="Catatan minggu ini"
-          value={
-            hasDashboardData
-              ? String(dashboardData?.metrics.notesThisWeek ?? 0)
-              : "—"
-          }
-          tone="green"
-        />
-        <Metric
-          label="Aktivitas selesai"
-          value={
-            hasDashboardData
-              ? String(dashboardData?.metrics.completedActivities ?? 0)
-              : "—"
-          }
-          tone="blue"
-        />
-        <Metric
-          label="Target tercapai"
-          value={
-            hasDashboardData
-              ? String(dashboardData?.metrics.achievedTargets ?? 0)
-              : "—"
-          }
-          tone="amber"
-        />
-        <Metric
-          label="Alert penting"
-          value={
-            hasDashboardData
-              ? String(dashboardData?.metrics.alertCount ?? 0)
-              : "—"
-          }
-          tone="coral"
-        />
-      </div>
-      <div className="dashboard-grid">
-        <Panel className="wide-panel">
-          <div className="panel-head">
-            <div>
-              <h2>Progress mingguan</h2>
-              <p>{chartPanelSubtitle(ctx, hasDashboardData)}</p>
-            </div>
-            {hasDashboardData ? (
-              <span className="trend-up">{dashboardData?.trend.label}</span>
-            ) : null}
-          </div>
-          {chart.length > 0 ? (
-            <div className="chart-modern">
-              {chart.map((point, index) => (
-                <div key={`${point.label}-${index}`} className="bar-column">
-                  <span
-                    style={{
-                      height: `${getChartBarHeight(point.value, maxChartValue)}%`,
-                    }}
-                  />
-                  <small>{point.label}</small>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="dashboard-instruction-list">
-              <div className="dashboard-instruction-card">
-                <strong>Tambahkan catatan harian</strong>
-                <p>
-                  Masukkan 2-3 observasi rutin agar grafik pola mingguan mulai
-                  terbentuk.
-                </p>
+        </div>
+
+        {/* Right column — focus targets + insight stacked */}
+        <div className="dash-col-right">
+          {/* Focus targets — visual with arcs */}
+          <div className="dash-focus">
+            <h2>Fokus saat ini</h2>
+            {focusTargets.length > 0 ? (
+              <div className="dash-focus-list">
+                {focusTargets.map((target) => (
+                  <FocusTargetItem key={target.id} target={target} />
+                ))}
               </div>
-              <div className="dashboard-instruction-card">
-                <strong>Gunakan area yang konsisten</strong>
-                <p>
-                  Pilih area perkembangan yang sama supaya grafik mudah
-                  dibandingkan dari minggu ke minggu.
-                </p>
-              </div>
-            </div>
-          )}
-        </Panel>
-        <Panel>
-          <div className="panel-head compact">
-            <h2>AI insight</h2>
-            <Sparkles size={22} />
-          </div>
-          <p className="insight-text">{latestInsight}</p>
-          <small>{latestInsightMeta}</small>
-          <button className="text-button" onClick={() => go("roadmap")}>
-            Lihat dampak ke roadmap <ChevronRight size={18} />
-          </button>
-        </Panel>
-        <Panel>
-          <h2>Aktivitas hari ini</h2>
-          <div className="activity-list">
-            {hasDashboardData && activities.length === 0 && (
-              <div className="activity-row">
-                <div>
-                  <strong>Belum ada aktivitas rekomendasi</strong>
-                  <p>
-                    Tambahkan catatan perkembangan agar rekomendasi aktivitas
-                    bisa disusun.
-                  </p>
-                </div>
-              </div>
-            )}
-            {activities.map((activity) => (
-              <div className="activity-row" key={activity.title}>
-                <span>
-                  {activity.area === "Perilaku" ? (
-                    <TimerReset size={20} />
-                  ) : activity.area === "Komunikasi" ? (
-                    <Activity size={20} />
-                  ) : activity.area === "Motorik" ? (
-                    <LineChart size={20} />
-                  ) : (
-                    <Utensils size={20} />
-                  )}
-                </span>
-                <div>
-                  <strong>{activity.title}</strong>
-                  <p>{activity.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Panel>
-        <Panel className="wide-panel roadmap-preview">
-          <div className="panel-head">
-            <div>
-              <h2>Roadmap perkembangan</h2>
-              <p>
-                {roadmapPreview.length > 0
-                  ? "Urutan milestone paling relevan untuk minggu ini."
-                  : "Baseline yang akan bergeser seiring catatan perkembangan yang Anda tambahkan."}
+            ) : (
+              <p className="dash-focus-empty">
+                Target muncul setelah roadmap terbentuk dari catatan Anda.
               </p>
-            </div>
-            <button className="secondary-button" onClick={() => go("roadmap")}>
-              Buka roadmap
+            )}
+            <button className="text-button" onClick={() => go("roadmap")}>
+              Lihat semua target <ChevronRight size={14} />
             </button>
           </div>
-          {roadmapPreview.length > 0 ? (
-            <RoadmapStrip items={roadmapPreview} />
-          ) : (
-            <div className="dashboard-instruction-list">
-              {dashboardInstructionRoadmap.map((item) => (
-                <div key={item.title} className="dashboard-instruction-card">
-                  <strong>{item.title}</strong>
-                  <p>{item.detail}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </Panel>
+
+          {/* Insight — expandable */}
+          <InsightCard
+            summary={insightSummary}
+            meta={insightMeta}
+            status={insightStatus}
+            go={go}
+          />
+        </div>
       </div>
-    </>
+
+      {/* Auth reminder */}
+      {!isAuthenticated && (
+        <section className="dash-auth-reminder">
+          <div>
+            <strong>Simpan progres di akun Anda</strong>
+            <p>Catatan dan roadmap disimpan permanen setelah akun ditautkan.</p>
+          </div>
+          <Link className="secondary-button" href="/login">
+            <LogIn size={16} /> Masuk
+          </Link>
+        </section>
+      )}
+
+      {/* Quick note modal */}
+      {onAddEntry && (
+        <QuickNote
+          open={quickNoteOpen}
+          onClose={() => setQuickNoteOpen(false)}
+          onSubmit={onAddEntry}
+          childName={childName}
+        />
+      )}
+
+      {/* Product tour — shows once on first visit with data */}
+      <ProductTour variant="full" />
+    </div>
   );
+}
+
+function DashboardEmpty({
+  guardianName: _guardianName,
+  ctx,
+  go: _go,
+  isAuthenticated,
+  onAddNote,
+}: {
+  guardianName: string;
+  ctx: ReturnType<typeof toChildContext>;
+  go: (screen: Screen) => void;
+  isAuthenticated: boolean;
+  onAddNote: () => void;
+}) {
+  const childName = ctx.name?.trim() || "anak Anda";
+
+  return (
+    <div className="dash">
+      <section className="dash-empty">
+        <div className="dash-empty-visual">
+          <Image
+            src="/images/empty_dashboard.png"
+            alt="Ilustrasi belum ada catatan"
+            width={260}
+            height={260}
+            priority
+          />
+        </div>
+        <div className="dash-empty-content">
+          <h1>Belum ada catatan untuk {childName}</h1>
+          <p>
+            Mulai dari satu momen kecil hari ini. Tidak perlu panjang — satu
+            kalimat tentang apa yang Anda perhatikan sudah cukup.
+          </p>
+          <button className="primary-button" onClick={onAddNote}>
+            <Plus size={18} /> Mulai mencatat
+          </button>
+        </div>
+      </section>
+
+      {!isAuthenticated && (
+        <section className="dash-auth-reminder">
+          <div>
+            <strong>Simpan progres di akun Anda</strong>
+            <p>Catatan dan roadmap disimpan permanen setelah akun ditautkan.</p>
+          </div>
+          <Link className="secondary-button" href="/login">
+            <LogIn size={16} /> Masuk
+          </Link>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function FocusTargetItem({ target }: { target: DashboardFocusTarget }) {
+  const radius = 22;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (target.progressPercent / 100) * circumference;
+  const areaColor = areaToStroke(target.area);
+
+  return (
+    <div className="dash-target-item">
+      <svg className="dash-arc" width="52" height="52" viewBox="0 0 56 56">
+        <circle
+          cx="28"
+          cy="28"
+          r={radius}
+          fill="none"
+          stroke="var(--surface-solid)"
+          strokeWidth="5"
+        />
+        <circle
+          cx="28"
+          cy="28"
+          r={radius}
+          fill="none"
+          stroke={areaColor}
+          strokeWidth="5"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          transform="rotate(-90 28 28)"
+        />
+        <text
+          x="28"
+          y="28"
+          textAnchor="middle"
+          dominantBaseline="central"
+          className="dash-arc-label"
+        >
+          {target.progressPercent}%
+        </text>
+      </svg>
+      <div className="dash-target-text">
+        <strong>{target.title}</strong>
+        <small>{target.area} · {target.statusLabel}</small>
+      </div>
+    </div>
+  );
+}
+
+function InsightCard({
+  summary,
+  meta,
+  status,
+  go,
+}: {
+  summary: string;
+  meta: string;
+  status: string;
+  go: (screen: Screen) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="dash-insight">
+      <div className="dash-insight-head">
+        <h3>Ringkasan catatan</h3>
+        <Sparkles size={18} />
+      </div>
+      <p className={`dash-insight-text ${expanded ? "expanded" : "collapsed"}`}>
+        {summary}
+      </p>
+      {summary.length > 150 && (
+        <button className="text-button" onClick={() => setExpanded(!expanded)}>
+          {expanded ? "Tutup" : "Baca selengkapnya"}{" "}
+          <ChevronDown
+            size={14}
+            style={{
+              transform: expanded ? "rotate(180deg)" : "none",
+              transition: "transform 200ms ease",
+            }}
+          />
+        </button>
+      )}
+      {meta && <small className="dash-insight-meta">{meta}</small>}
+      {status !== "EMPTY" && (
+        <button className="text-button" onClick={() => go("roadmap")}>
+          Dampak ke roadmap <ChevronRight size={14} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function areaToTone(area: string): string {
+  switch (area) {
+    case "Komunikasi": return "mint";
+    case "Motorik": return "blue";
+    case "Perilaku": return "amber";
+    case "Akademik": return "coral";
+    default: return "mint";
+  }
+}
+
+function areaToStroke(area: string): string {
+  switch (area) {
+    case "Komunikasi": return "var(--teal)";
+    case "Motorik": return "var(--blue)";
+    case "Perilaku": return "var(--amber)";
+    case "Akademik": return "var(--coral)";
+    default: return "var(--teal)";
+  }
+}
+
+/**
+ * Compute weekday labels for the 7-day window based on todayIndex.
+ */
+function getWeekdayLabels(todayIndex: number): string[] {
+  const allDays = ["M", "S", "S", "R", "K", "J", "S"];
+  const todayJsDay = new Date().getDay();
+
+  const labels: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const daysBeforeToday = todayIndex - i;
+    const jsDay = ((todayJsDay - daysBeforeToday) % 7 + 7) % 7;
+    labels.push(allDays[jsDay]);
+  }
+  return labels;
 }

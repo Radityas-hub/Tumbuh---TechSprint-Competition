@@ -22,6 +22,22 @@ export type DashboardActivity = {
   title: string;
   body: string;
   area: string;
+  actionType: "practice" | "observe" | "record";
+};
+
+export type DashboardSpotlight = {
+  message: string;
+  area: string | null;
+  suggestedAction: "insight" | "consultation";
+};
+
+export type DashboardFocusTarget = {
+  id: string;
+  title: string;
+  area: string;
+  status: string;
+  statusLabel: string;
+  progressPercent: number;
 };
 
 export type DashboardResponse = {
@@ -30,15 +46,20 @@ export type DashboardResponse = {
   trend: {
     direction: "up" | "flat";
     label: string;
+    delta: number;
   };
   latestInsight: Awaited<ReturnType<typeof getLatestInsightForChild>>;
   activities: DashboardActivity[];
   roadmapPreview: SerializedRoadmapItem[];
+  focusTargets: DashboardFocusTarget[];
+  spotlight: DashboardSpotlight | null;
+  dailyDots: boolean[];
   meta: {
     hasMeaningfulProgress: boolean;
     hasCurrentWeekEntries: boolean;
     usesSeedRoadmap: boolean;
     shouldUsePlaceholder: boolean;
+    todayIndex: number;
   };
 };
 
@@ -55,6 +76,38 @@ function addDays(value: Date, days: number) {
 }
 
 const weekdayLabels = ["M", "S", "S", "R", "K", "J", "S"];
+
+function computeProgressPercent(item: SerializedRoadmapItem): number {
+  switch (item.status) {
+    case RoadmapStatus.ACHIEVED:
+      return 100;
+    case RoadmapStatus.IN_PROGRESS:
+      return Math.min(90, Math.max(20, Math.round(item.confidenceScore * 100)));
+    case RoadmapStatus.NEEDS_ATTENTION:
+      return Math.min(50, Math.max(10, Math.round(item.confidenceScore * 100)));
+    case RoadmapStatus.NEXT_TARGET:
+      return 5;
+    default:
+      return 0;
+  }
+}
+
+function statusToLabel(status: string): string {
+  switch (status) {
+    case RoadmapStatus.ACHIEVED:
+      return "Tercapai";
+    case RoadmapStatus.IN_PROGRESS:
+      return "Sedang berjalan";
+    case RoadmapStatus.NEEDS_ATTENTION:
+      return "Perlu perhatian";
+    case RoadmapStatus.NEXT_TARGET:
+      return "Target berikutnya";
+    case "PAUSED":
+      return "Dijeda";
+    default:
+      return status;
+  }
+}
 
 export async function buildDashboardForChild(childId: string): Promise<DashboardResponse> {
   const now = new Date();
@@ -133,6 +186,21 @@ export async function buildDashboardForChild(childId: string): Promise<Dashboard
     };
   });
 
+  // Compute daily dots (boolean per day: has entry or not)
+  const dailyDots = Array.from({ length: 7 }, (_, index) => {
+    const dayStart = addDays(chartStart, index);
+    const dayEnd = addDays(dayStart, 1);
+    return weekEntries.some(
+      (entry) => entry.observedAt >= dayStart && entry.observedAt < dayEnd,
+    );
+  });
+
+  // Today's index in the 7-day window (0-6)
+  const todayStart = startOfDay(now);
+  const todayIndex = Math.round(
+    (todayStart.getTime() - chartStart.getTime()) / (24 * 60 * 60 * 1000),
+  );
+
   const notesThisWeek = weekEntries.length;
   const hasMeaningfulProgress = totalProgressCount > 0;
   const shouldUsePlaceholder = !hasMeaningfulProgress;
@@ -141,20 +209,65 @@ export async function buildDashboardForChild(childId: string): Promise<Dashboard
   const activeRoadmapCount = roadmapItems.filter(
     (item) => item.status === RoadmapStatus.IN_PROGRESS || item.status === RoadmapStatus.ACHIEVED,
   ).length;
-  const alertCount = hasMeaningfulProgress ? latestInsight?.alerts.length ?? 0 : 0;
   const delta = notesThisWeek - previousWeekCount;
 
+  // Filter out non-actionable alerts (data limitation messages)
+  const dataLimitationPhrases = [
+    "belum ada alert",
+    "belum banyak catatan",
+    "catatan mingguan masih terbatas",
+    "tidak tersedianya catatan",
+    "data masih terbatas",
+    "belum cukup",
+    "rentang sebelumnya",
+    "pola belum terlihat",
+  ];
+
+  const actionableAlerts = (latestInsight?.alerts ?? []).filter((alert) => {
+    const lower = alert.toLowerCase();
+    return !dataLimitationPhrases.some((phrase) => lower.includes(phrase));
+  });
+
+  const alertCount = hasMeaningfulProgress ? actionableAlerts.length : 0;
+
+  let spotlight: DashboardSpotlight | null = null;
+  if (hasMeaningfulProgress && actionableAlerts.length > 0) {
+    spotlight = {
+      message: actionableAlerts[0],
+      area: roadmapItems.find((item) => item.status === RoadmapStatus.NEEDS_ATTENTION)?.area ?? null,
+      suggestedAction: "insight",
+    };
+  }
+
+  // Build focus targets: top 2 most relevant roadmap items
+  const focusTargets: DashboardFocusTarget[] = hasMeaningfulProgress
+    ? roadmapItems
+        .filter((item) => item.status === RoadmapStatus.IN_PROGRESS || item.status === RoadmapStatus.NEEDS_ATTENTION)
+        .sort((a, b) => {
+          // Prioritize items closer to achieved (higher confidence)
+          return b.confidenceScore - a.confidenceScore;
+        })
+        .slice(0, 2)
+        .map((item) => ({
+          id: item.id,
+          title: item.title,
+          area: item.area,
+          status: item.status,
+          statusLabel: statusToLabel(item.status),
+          progressPercent: computeProgressPercent(item),
+        }))
+    : [];
+
   const recommendations =
-    hasMeaningfulProgress ? latestInsight?.recommendations.slice(0, 3) ?? [] : [];
+    hasMeaningfulProgress ? latestInsight?.recommendations.slice(0, 2) ?? [] : [];
   const activities: DashboardActivity[] = recommendations.map((body, index) => ({
     title:
       index === 0
         ? "Fokus latihan hari ini"
-        : index === 1
-          ? "Observasi yang bisa dicatat"
-          : "Langkah kecil berikutnya",
+        : "Observasi yang bisa dicatat",
     body,
     area: roadmapItems[index]?.area ?? "Rutinitas",
+    actionType: index === 0 ? "practice" as const : "observe" as const,
   }));
 
   return {
@@ -168,15 +281,20 @@ export async function buildDashboardForChild(childId: string): Promise<Dashboard
     trend: {
       direction: delta > 0 ? "up" : "flat",
       label: hasMeaningfulProgress ? (delta > 0 ? `+${delta}` : "Stabil") : "",
+      delta,
     },
     latestInsight: hasMeaningfulProgress ? latestInsight : null,
     activities: hasMeaningfulProgress ? activities : [],
     roadmapPreview: hasMeaningfulProgress ? roadmapItems.slice(0, 4) : [],
+    focusTargets,
+    spotlight,
+    dailyDots: hasMeaningfulProgress ? dailyDots : [],
     meta: {
       hasMeaningfulProgress,
       hasCurrentWeekEntries: notesThisWeek > 0,
       usesSeedRoadmap,
       shouldUsePlaceholder,
+      todayIndex,
     },
   };
 }

@@ -569,14 +569,16 @@ export function useTumbuhSession(initialScreen: Screen) {
   const guardianName = guardian?.displayName?.trim() || "Orang Tua";
   const isAuthenticated = authState === "ready" && Boolean(guardian);
   const isBooting = authState === "loading";
+  const isChildrenPending =
+    authState === "ready" && Boolean(me?.onboarding.hasChildren) && !activeChildId;
   const hasActiveChild =
     authState === "ready" && Boolean(guardian) && Boolean(activeChildId);
   const isDashboardLoading =
-    isBooting || (hasActiveChild && dashboardData === null);
+    isBooting || isChildrenPending || (hasActiveChild && dashboardData === null);
   const isRoadmapLoading =
-    isBooting || (hasActiveChild && roadmapMeta === null);
+    isBooting || isChildrenPending || (hasActiveChild && roadmapMeta === null);
   const isTimelineLoading =
-    isBooting || (hasActiveChild && timelineEntries.length === 0 && entries.length === 0 && dashboardData === null);
+    isBooting || isChildrenPending || (hasActiveChild && timelineEntries.length === 0 && entries.length === 0 && dashboardData === null);
   const primaryStartHref = useMemo(() => {
     return authState === "ready" &&
       me?.onboarding.hasChildren &&
