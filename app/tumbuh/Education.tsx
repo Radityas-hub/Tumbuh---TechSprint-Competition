@@ -63,17 +63,13 @@ export function Education({
     null,
   );
   const [question, setQuestion] = useState("");
-  const [assistantReply, setAssistantReply] = useState(
-    assistantInitialPrompt(ctx),
-  );
+  const [chatMessages, setChatMessages] = useState<
+    Array<{ role: "user" | "assistant"; content: string }>
+  >([]);
+  const [isAsking, setIsAsking] = useState(false);
   const [assistantConversationId, setAssistantConversationId] = useState<
     string | null
   >(null);
-
-  useEffect(() => {
-    setAssistantReply(assistantInitialPrompt(ctx));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ctx.name, ctx.condition, (ctx.focusAreas ?? []).join(",")]);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,12 +114,12 @@ export function Education({
 
   const askAssistant = () => {
     const trimmed = question.trim();
-    if (!trimmed) {
-      setAssistantReply(
-        "Tulis pertanyaan singkat dulu, misalnya tentang rutinitas, tantrum, komunikasi, atau persiapan konsultasi.",
-      );
-      return;
-    }
+    if (!trimmed || isAsking) return;
+
+    setChatMessages((prev) => [...prev, { role: "user", content: trimmed }]);
+    setQuestion("");
+    setIsAsking(true);
+
     void apiRequest<AssistantChatResponse>("/api/assistant/chat", {
       method: "POST",
       headers: {
@@ -136,15 +132,25 @@ export function Education({
       }),
     })
       .then((response) => {
-        setAssistantReply(response.reply);
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: response.reply },
+        ]);
         setAssistantConversationId(response.conversation.id);
-        setQuestion("");
       })
       .catch((error) => {
         console.error("Failed to ask assistant", error);
-        setAssistantReply(
-          "Pertanyaan belum berhasil dikirim. Coba lagi sebentar lagi. Jawaban assistant tetap bukan diagnosis.",
-        );
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content:
+              "Pertanyaan belum berhasil dikirim. Coba lagi sebentar lagi. Jawaban assistant tetap bukan diagnosis.",
+          },
+        ]);
+      })
+      .finally(() => {
+        setIsAsking(false);
       });
   };
 
@@ -211,7 +217,17 @@ export function Education({
             <h2>Tanya Tumbuh AI</h2>
           </div>
           <div className="chat-thread">
-            <p className="chat ai">{assistantReply}</p>
+            {chatMessages.length === 0 && (
+              <p className="chat ai">{assistantInitialPrompt(ctx)}</p>
+            )}
+            {chatMessages.map((msg, index) => (
+              <p key={index} className={`chat ${msg.role === "user" ? "user" : "ai"}`}>
+                {msg.content}
+              </p>
+            ))}
+            {isAsking && (
+              <p className="chat ai typing">Sedang menyusun jawaban...</p>
+            )}
           </div>
           <div className="assistant-input">
             <input
@@ -222,8 +238,9 @@ export function Education({
               onKeyDown={(event) => {
                 if (event.key === "Enter") askAssistant();
               }}
+              disabled={isAsking}
             />
-            <button aria-label="Kirim pertanyaan" onClick={askAssistant}>
+            <button aria-label="Kirim pertanyaan" onClick={askAssistant} disabled={isAsking}>
               <ArrowRight size={18} />
             </button>
           </div>

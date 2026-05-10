@@ -1175,7 +1175,10 @@ function getAssistantLlmConfig() {
     return null;
   }
 
-  return { apiUrl, apiKey, model };
+  // Extract base URL (remove /chat/completions path for OpenAI SDK)
+  const baseURL = apiUrl.replace(/\/chat\/completions\/?$/, "");
+
+  return { apiUrl, apiKey, model, baseURL };
 }
 
 function parseChatCompletionContent(payload: unknown): string | null {
@@ -1272,6 +1275,7 @@ export async function generateAssistantAnswer(input: {
     content: string;
   }>;
 }) {
+  const { default: OpenAI } = await import("openai");
   const config = getAssistantLlmConfig();
   const fallback = buildAssistantFallbackAnswer(input);
 
@@ -1284,66 +1288,65 @@ export async function generateAssistantAnswer(input: {
     };
   }
 
-  const payload = {
-    task:
-      "Jawab pertanyaan guardian dengan aman, non-diagnostik, dan hanya memakai context yang diberikan. Jika data kurang, katakan dengan jujur.",
-    intent: input.intent,
-    question: input.question,
-    childContext: input.context,
-    retrievedKnowledge: input.chunks.map((chunk) => ({
-      id: chunk.id,
-      title: chunk.articleTitle,
-      category: chunk.category,
-      text: chunk.chunkText,
-      citationLabel: chunk.citationLabel,
-      retrievalScore: chunk.retrievalScore ?? null,
-      retrievalReasons: chunk.retrievalReasons ?? [],
-    })),
-    policies: input.policies.map((policy) => policy.content),
-    conversationHistory: input.conversationHistory.slice(-4),
-    outputSchema: {
-      answer: "string",
-      reasoningSummary: "string",
-      nextObservationIdeas: "string[] max 3",
-      followupQuestions: "string[] max 3",
-      riskLevel: '"low" | "medium" | "high"',
-      citations: "array of { chunkId, articleTitle, citationLabel } max 3",
-    },
-  };
+  const openai = new OpenAI({
+    apiKey: config.apiKey,
+    baseURL: config.baseURL,
+  });
+
+  const systemPrompt = [
+    "Anda adalah Tumbuh AI — assistant parenting support untuk anak berkebutuhan khusus.",
+    "Gunakan hanya data child dan knowledge chunks yang diberikan.",
+    "Jangan memberi diagnosis, obat, dosis, atau klaim klinis.",
+    "Jika data belum cukup, katakan dengan jujur.",
+    "Beri saran observasi atau langkah rumah yang aman dan sederhana.",
+    "Jika terlihat high-risk, arahkan ke profesional.",
+    "Jawab dalam bahasa Indonesia yang hangat dan suportif.",
+    "",
+    "POLICIES:",
+    ...input.policies.map((policy) => `- ${policy.content}`),
+    "",
+    "CHILD CONTEXT:",
+    input.context.child
+      ? `Nama: ${input.context.child.name}, Kondisi: ${input.context.child.condition}, Fokus: ${input.context.child.focusAreas.join(", ")}, Rutinitas: ${input.context.child.routine ?? "-"}`
+      : "Tidak ada child context.",
+    input.context.latestInsightSummary
+      ? `Insight terakhir: ${input.context.latestInsightSummary}`
+      : "",
+    input.context.roadmapTargets.length > 0
+      ? `Target roadmap aktif: ${input.context.roadmapTargets.map((t) => `${t.title} (${t.status})`).join(", ")}`
+      : "",
+    input.context.recentProgress.length > 0
+      ? `Observasi terbaru: ${input.context.recentProgress.slice(0, 5).map((p) => `[${p.area}] ${p.note ?? p.title ?? "-"}`).join("; ")}`
+      : "",
+    "",
+    "KNOWLEDGE BASE:",
+    ...input.chunks.map((chunk) => `[${chunk.citationLabel}] ${chunk.chunkText}`),
+    "",
+    "Balas dalam JSON: { answer, reasoningSummary, nextObservationIdeas (max 3), followupQuestions (max 3), riskLevel (low/medium/high), citations (array {chunkId, articleTitle, citationLabel} max 3) }",
+  ].filter(Boolean).join("\n");
+
+  const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+    { role: "system", content: systemPrompt },
+  ];
+
+  for (const msg of input.conversationHistory.slice(-4)) {
+    messages.push({
+      role: msg.role === "assistant" ? "assistant" : "user",
+      content: msg.content,
+    });
+  }
+
+  messages.push({ role: "user", content: input.question });
 
   try {
-    const response = await fetch(config.apiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: config.model,
-        temperature: 0.1,
-        response_format: {
-          type: "json_object",
-        },
-        messages: [
-          {
-            role: "system",
-            content:
-              "Anda adalah assistant parenting support untuk anak berkebutuhan khusus. Gunakan hanya data child, knowledge chunks, dan policy yang diberikan. Jangan memberi diagnosis, obat, atau klaim klinis. Jika data belum cukup, katakan dengan jujur. Balas hanya JSON.",
-          },
-          {
-            role: "user",
-            content: JSON.stringify(payload),
-          },
-        ],
-      }),
+    const completion = await openai.chat.completions.create({
+      model: config.model,
+      temperature: 0.15,
+      response_format: { type: "json_object" },
+      messages,
     });
 
-    if (!response.ok) {
-      throw new Error(`Assistant LLM request failed with status ${response.status}`);
-    }
-
-    const rawPayload = (await response.json()) as unknown;
-    const content = parseChatCompletionContent(rawPayload);
+    const content = completion.choices[0]?.message?.content;
 
     if (!content) {
       throw new Error("Assistant LLM content is empty");
@@ -1359,7 +1362,7 @@ export async function generateAssistantAnswer(input: {
       structured: parsed,
       fallbackUsed: false,
       modelName: config.model,
-      rawResponse: rawPayload as Prisma.InputJsonValue,
+      rawResponse: completion as unknown as Prisma.InputJsonValue,
     };
   } catch (error) {
     console.error("Assistant LLM failed, using fallback response", error);
