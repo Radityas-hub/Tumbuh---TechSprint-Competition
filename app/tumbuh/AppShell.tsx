@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ShieldCheck, Stethoscope, Settings as SettingsIcon, X } from "lucide-react";
 
 import { navItems } from "./constants";
@@ -22,6 +22,9 @@ export function AppShell({
 }) {
   const [navOpen, setNavOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const sidebarRef = useRef<HTMLElement | null>(null);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
 
   const supportNeed = activeChild?.supportNeed?.toLowerCase() ?? "";
   const isConsultationHint = supportNeed.includes("konsultasi");
@@ -51,17 +54,59 @@ export function AppShell({
     if (!navOpen && !moreOpen) {
       return;
     }
+    const container = navOpen ? sidebarRef.current : sheetRef.current;
+    lastFocusedRef.current =
+      (document.activeElement as HTMLElement | null) ?? null;
+
+    const focusables = container
+      ? Array.from(
+          container.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((el) => !el.hasAttribute("disabled"))
+      : [];
+
+    const firstFocusable = focusables[0];
+    const lastFocusable = focusables[focusables.length - 1];
+
+    // Small delay so the transition can start before focusing.
+    const focusTimer = window.setTimeout(() => {
+      firstFocusable?.focus();
+    }, 40);
+
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         closeAll();
+        return;
+      }
+      if (event.key !== "Tab" || focusables.length === 0) {
+        return;
+      }
+      const active = document.activeElement as HTMLElement | null;
+      if (event.shiftKey) {
+        if (active === firstFocusable || !container?.contains(active)) {
+          event.preventDefault();
+          lastFocusable?.focus();
+        }
+      } else if (active === lastFocusable) {
+        event.preventDefault();
+        firstFocusable?.focus();
       }
     };
+
     document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
     return () => {
+      window.clearTimeout(focusTimer);
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
+      const returnTo = lastFocusedRef.current;
+      lastFocusedRef.current = null;
+      if (returnTo && typeof returnTo.focus === "function") {
+        returnTo.focus();
+      }
     };
   }, [navOpen, moreOpen]);
 
@@ -74,8 +119,8 @@ export function AppShell({
 
       <aside
         id="mobile-nav-drawer"
+        ref={sidebarRef}
         className={cx("sidebar", navOpen && "is-open")}
-        aria-hidden={!navOpen || undefined}
       >
         <div className="sidebar-inner">
           <div className="sidebar-header">
@@ -146,6 +191,7 @@ export function AppShell({
             aria-hidden="true"
           />
           <div
+            ref={sheetRef}
             className="mobile-more-sheet is-open"
             role="dialog"
             aria-modal="true"
