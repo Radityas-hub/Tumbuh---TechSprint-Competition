@@ -506,6 +506,11 @@ function mergeRoadmapChanges(
       continue;
     }
 
+    // Never let LLM override ACHIEVED status set by guardian
+    if (current.status === RoadmapStatus.ACHIEVED) {
+      continue;
+    }
+
     const actionStatus =
       change.action === "pause"
         ? RoadmapStatus.PAUSED
@@ -745,6 +750,20 @@ export async function personalizeRoadmapForChild(input: PersonalizeRoadmapInput)
   for (const change of merged.itemChanges) {
     const current = itemById.get(change.itemId);
     if (!current) {
+      continue;
+    }
+
+    // Skip items where nothing meaningful changed to avoid unnecessary rewrites
+    const statusUnchanged = change.status === current.status;
+    const detailUnchanged = change.detail === current.detail;
+    const sortOrderUnchanged = change.sortOrder === current.sortOrder;
+    const confidenceUnchanged = change.confidenceScore === current.confidenceScore;
+    const existingEvidence = parseEvidence(current.evidence);
+    const evidenceUnchanged =
+      change.evidence.length === existingEvidence.length &&
+      change.evidence.every((line, idx) => line === existingEvidence[idx]);
+
+    if (statusUnchanged && detailUnchanged && sortOrderUnchanged && confidenceUnchanged && evidenceUnchanged) {
       continue;
     }
 
