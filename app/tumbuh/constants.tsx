@@ -1,7 +1,6 @@
 import {
   BookOpen,
   ClipboardList,
-  FileText,
   Home,
   Settings,
   Stethoscope,
@@ -25,7 +24,6 @@ export const navItems: { id: Screen; label: string; icon: ReactNode }[] = [
   { id: "education", label: "Edukasi", icon: <BookOpen size={18} /> },
   { id: "consultation", label: "Konsultasi", icon: <Stethoscope size={18} /> },
   { id: "settings", label: "Pengaturan", icon: <Settings size={18} /> },
-  { id: "handoff", label: "Admin", icon: <FileText size={18} /> },
 ];
 
 export const screenPaths: Record<Screen, string> = {
