@@ -452,7 +452,35 @@ async function generateRoadmapLlmChanges(
       throw new Error("Roadmap LLM response content is empty");
     }
 
-    const parsed = roadmapAdjustmentSchema.parse(JSON.parse(content));
+    const rawParsed = JSON.parse(content) as Record<string, unknown>;
+
+    // Sanitize LLM output before Zod validation: truncate long strings, normalize invalid enums
+    if (Array.isArray(rawParsed.changes)) {
+      for (const change of rawParsed.changes as Record<string, unknown>[]) {
+        if (typeof change.detail === "string" && change.detail.length > 300) {
+          change.detail = change.detail.slice(0, 297) + "...";
+        }
+        if (typeof change.title === "string" && change.title.length > 120) {
+          change.title = change.title.slice(0, 117) + "...";
+        }
+        if (typeof change.reason === "string" && change.reason.length > 240) {
+          change.reason = change.reason.slice(0, 237) + "...";
+        }
+        if (change.status && !roadmapStatusValues.includes(change.status as typeof roadmapStatusValues[number])) {
+          change.status = undefined;
+        }
+        if (Array.isArray(change.evidence)) {
+          change.evidence = (change.evidence as string[]).map((e) =>
+            typeof e === "string" && e.length > 200 ? e.slice(0, 197) + "..." : e
+          ).slice(0, 4);
+        }
+      }
+    }
+    if (typeof rawParsed.summary === "string" && rawParsed.summary.length > 600) {
+      rawParsed.summary = rawParsed.summary.slice(0, 597) + "...";
+    }
+
+    const parsed = roadmapAdjustmentSchema.parse(rawParsed);
 
     return {
       changes: parsed.changes,
@@ -844,6 +872,22 @@ export async function personalizeRoadmapForChild(input: PersonalizeRoadmapInput)
   });
 
   const updatedItems = await getRoadmapRecordsForChild(input.childId);
+
+  // If all items are ACHIEVED after personalization, seed next targets
+  const allAchieved = updatedItems.every((item) => item.status === RoadmapStatus.ACHIEVED);
+  if (allAchieved && updatedItems.length > 0) {
+    const { seedNextTargetsIfAllAchieved } = await import("./roadmap");
+    await seedNextTargetsIfAllAchieved(input.childId);
+    const refreshedItems = await getRoadmapRecordsForChild(input.childId);
+    return {
+      applied: true,
+      source: llmResult.source,
+      modelName: llmResult.modelName,
+      promptVersion: llmResult.promptVersion,
+      summary: llmResult.summary,
+      items: refreshedItems,
+    };
+  }
 
   return {
     applied: true,

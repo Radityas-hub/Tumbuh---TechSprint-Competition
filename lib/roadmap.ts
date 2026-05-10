@@ -364,7 +364,7 @@ export function buildRoadmapMeta(
   };
 }
 
-async function seedNextTargetsIfAllAchieved(childId: string) {
+export async function seedNextTargetsIfAllAchieved(childId: string) {
   const nonAchievedCount = await prisma.roadmapItem.count({
     where: {
       childId,
@@ -379,8 +379,10 @@ async function seedNextTargetsIfAllAchieved(childId: string) {
   const child = await prisma.child.findUniqueOrThrow({
     where: { id: childId },
     select: {
-      focusAreas: true,
+      id: true,
+      name: true,
       condition: true,
+      focusAreas: true,
       birthDate: true,
       routine: true,
       supportNeed: true,
@@ -403,6 +405,7 @@ async function seedNextTargetsIfAllAchieved(childId: string) {
     return map[area] ?? "Komunikasi";
   });
 
+  // Try curriculum first
   const candidates = selectCurriculumForChild({
     focusAreas,
     condition: child.condition,
@@ -412,38 +415,135 @@ async function seedNextTargetsIfAllAchieved(childId: string) {
   }).filter((item) => !existingTitleSet.has(item.title.toLowerCase()));
 
   const nextItems = candidates.slice(0, 2);
-  if (nextItems.length === 0) {
+
+  if (nextItems.length > 0) {
+    const currentMaxOrder = await prisma.roadmapItem.aggregate({
+      where: { childId },
+      _max: { sortOrder: true },
+    });
+
+    let sortOrder = (currentMaxOrder._max.sortOrder ?? 0) + 1;
+
+    const focusAreaToEnumMap: Record<FocusAreaLabel, string> = {
+      Komunikasi: FocusArea.COMMUNICATION,
+      Motorik: FocusArea.MOTORIC,
+      Perilaku: FocusArea.BEHAVIOR,
+      Akademik: FocusArea.ACADEMIC,
+    };
+
+    await prisma.roadmapItem.createMany({
+      data: nextItems.map((item, index) => ({
+        childId,
+        area: focusAreaToEnumMap[item.area] as typeof FocusArea[keyof typeof FocusArea],
+        title: item.title,
+        detail: item.detail,
+        status: index === 0 ? RoadmapStatus.IN_PROGRESS : RoadmapStatus.NEXT_TARGET,
+        evidence: item.evidence,
+        confidenceScore: 0.58,
+        sortOrder: sortOrder++,
+        personalizationSource: "curriculum_v1",
+        personalizationReason: "Target baru setelah semua target sebelumnya tercapai.",
+      })),
+    });
     return;
   }
 
-  const currentMaxOrder = await prisma.roadmapItem.aggregate({
-    where: { childId },
-    _max: { sortOrder: true },
+  // Curriculum exhausted — ask LLM to generate new targets
+  const llmConfig = getLlmConfigForSeed();
+  if (!llmConfig) return;
+
+  const recentProgress = await prisma.progressEntry.findMany({
+    where: { childId, deletedAt: null },
+    orderBy: { observedAt: "desc" },
+    take: 10,
+    select: { area: true, note: true, title: true, observedAt: true },
   });
 
-  let sortOrder = (currentMaxOrder._max.sortOrder ?? 0) + 1;
-
-  const focusAreaToEnumMap: Record<FocusAreaLabel, string> = {
-    Komunikasi: FocusArea.COMMUNICATION,
-    Motorik: FocusArea.MOTORIC,
-    Perilaku: FocusArea.BEHAVIOR,
-    Akademik: FocusArea.ACADEMIC,
-  };
-
-  await prisma.roadmapItem.createMany({
-    data: nextItems.map((item, index) => ({
-      childId,
-      area: focusAreaToEnumMap[item.area] as typeof FocusArea[keyof typeof FocusArea],
-      title: item.title,
-      detail: item.detail,
-      status: index === 0 ? RoadmapStatus.IN_PROGRESS : RoadmapStatus.NEXT_TARGET,
-      evidence: item.evidence,
-      confidenceScore: 0.58,
-      sortOrder: sortOrder++,
-      personalizationSource: "curriculum_v1",
-      personalizationReason: "Target baru setelah semua target sebelumnya tercapai.",
-    })),
+  const achievedItems = await prisma.roadmapItem.findMany({
+    where: { childId, status: RoadmapStatus.ACHIEVED },
+    select: { title: true, area: true },
   });
+
+  try {
+    const response = await fetch(llmConfig.apiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${llmConfig.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: llmConfig.model,
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content: "Anda membantu membuat target perkembangan baru untuk anak berkebutuhan khusus. Gunakan bahasa Indonesia, non-diagnostik, dan praktis untuk orang tua. Balas hanya JSON dengan field: targets (array max 2, tiap item punya title, detail, evidence array max 2).",
+          },
+          {
+            role: "user",
+            content: JSON.stringify({
+              task: "Buat 2 target perkembangan baru yang belum pernah ada sebelumnya.",
+              child: { name: child.name, condition: child.condition, focusAreas, routine: child.routine },
+              achievedTargets: achievedItems.map((i) => i.title),
+              recentObservations: recentProgress.slice(0, 5).map((e) => ({ area: e.area, note: e.note ?? e.title })),
+              rules: { maxTargets: 2, nonDiagnostic: true, language: "id-ID", maxDetailLength: 250 },
+            }),
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) return;
+
+    const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    const content = payload.choices?.[0]?.message?.content;
+    if (!content) return;
+
+    const parsed = JSON.parse(content) as { targets?: Array<{ title?: string; detail?: string; evidence?: string[] }> };
+    const targets = (parsed.targets ?? []).filter((t) => t.title && t.detail).slice(0, 2);
+    if (targets.length === 0) return;
+
+    const currentMaxOrder = await prisma.roadmapItem.aggregate({
+      where: { childId },
+      _max: { sortOrder: true },
+    });
+
+    let sortOrder = (currentMaxOrder._max.sortOrder ?? 0) + 1;
+    const primaryArea = focusAreas[0] ?? "Komunikasi";
+
+    const focusAreaToEnumMap: Record<FocusAreaLabel, string> = {
+      Komunikasi: FocusArea.COMMUNICATION,
+      Motorik: FocusArea.MOTORIC,
+      Perilaku: FocusArea.BEHAVIOR,
+      Akademik: FocusArea.ACADEMIC,
+    };
+
+    await prisma.roadmapItem.createMany({
+      data: targets.map((target, index) => ({
+        childId,
+        area: focusAreaToEnumMap[primaryArea] as typeof FocusArea[keyof typeof FocusArea],
+        title: (target.title ?? "").slice(0, 120),
+        detail: (target.detail ?? "").slice(0, 300),
+        status: index === 0 ? RoadmapStatus.IN_PROGRESS : RoadmapStatus.NEXT_TARGET,
+        evidence: (target.evidence ?? []).map((e) => String(e).slice(0, 200)).slice(0, 2),
+        confidenceScore: 0.6,
+        sortOrder: sortOrder++,
+        personalizationSource: "llm",
+        personalizationReason: "Target baru dari LLM setelah semua target sebelumnya tercapai dan curriculum habis.",
+      })),
+    });
+  } catch (error) {
+    console.error("Failed to generate new roadmap targets with LLM", error);
+  }
+}
+
+function getLlmConfigForSeed() {
+  const apiUrl = process.env.INSIGHT_LLM_API_URL?.trim();
+  const apiKey = process.env.INSIGHT_LLM_API_KEY?.trim();
+  const model = process.env.INSIGHT_LLM_MODEL?.trim();
+  if (!apiUrl || !apiKey || !model) return null;
+  return { apiUrl, apiKey, model };
 }
 
 export async function getOwnedRoadmapItemForGuardian(guardianId: string, itemId: string) {
@@ -495,10 +595,16 @@ export async function updateOwnedRoadmapItemForGuardian(
   await markInsightsStaleForChild(childId);
   await scheduleInsightRefreshForChild(childId);
 
-  // If all items are now ACHIEVED, seed next targets from curriculum
+  // Seed next targets synchronously so they're available on the next GET /roadmap
   if (input.status === RoadmapStatus.ACHIEVED) {
     await seedNextTargetsIfAllAchieved(childId);
   }
 
-  return serializeRoadmapItem(item);
+  // Re-read items after potential seed so frontend gets fresh data on refreshAggregateData
+  const freshItem = await prisma.roadmapItem.findUniqueOrThrow({
+    where: { id: itemId },
+    select: roadmapSelect,
+  });
+
+  return serializeRoadmapItem(freshItem);
 }

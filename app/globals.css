@@ -2229,6 +2229,22 @@ textarea:focus {
   gap: var(--space-4);
 }
 
+.roadmap-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--teal-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--space-2);
+}
+
+.roadmap-section-label.achieved {
+  color: var(--muted);
+  margin-top: var(--space-4);
+}
+
 .timeline-item {
   position: relative;
   display: flex;

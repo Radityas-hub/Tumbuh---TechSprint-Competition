@@ -145,61 +145,86 @@ export function Roadmap({
               </div>
             </div>
           )}
-          {roadmap.map((item, index) => {
-            const achieved = item.status === "ACHIEVED";
-            const active = item.status === "IN_PROGRESS";
-            const busy = pendingId === item.id;
-
-            return (
-              <div
-                className={cx("timeline-item", achieved && "is-achieved")}
-                key={item.id}
-              >
-                <span className={cx("timeline-dot", item.tone)} />
-                {index < roadmap.length - 1 && (
-                  <span className="timeline-line" />
-                )}
-                <div>
-                  <small>{item.statusLabel}</small>
-                  <h3>{item.title}</h3>
-                  <p>{item.detail}</p>
-                  {isAuthenticated ? (
-                    <div className="roadmap-item-actions">
-                      <button
-                        type="button"
-                        className={cx(
-                          "roadmap-action",
-                          achieved && "is-achieved",
-                        )}
-                        onClick={() => toggleStatus(item)}
-                        disabled={busy}
-                      >
-                        {achieved ? (
-                          <>
-                            <RotateCcw size={14} /> Buka lagi
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 size={14} /> Tandai tercapai
-                          </>
-                        )}
-                      </button>
-                      {!achieved && !active ? (
+          {roadmap.filter((item) => item.status !== "ACHIEVED").length > 0 && (
+            <div className="roadmap-section-label">Target aktif</div>
+          )}
+          {roadmap
+            .filter((item) => item.status !== "ACHIEVED")
+            .map((item, index, arr) => {
+              const busy = pendingId === item.id;
+              return (
+                <div
+                  className="timeline-item"
+                  key={item.id}
+                >
+                  <span className={cx("timeline-dot", item.tone)} />
+                  {index < arr.length - 1 && <span className="timeline-line" />}
+                  <div>
+                    <small>{item.statusLabel}</small>
+                    <h3>{item.title}</h3>
+                    <p>{item.detail}</p>
+                    {isAuthenticated ? (
+                      <div className="roadmap-item-actions">
                         <button
                           type="button"
-                          className="roadmap-action secondary"
-                          onClick={() => bumpToInProgress(item)}
+                          className="roadmap-action"
+                          onClick={() => toggleStatus(item)}
                           disabled={busy}
                         >
-                          <Circle size={14} /> Jadikan fokus
+                          <CheckCircle2 size={14} /> Tandai tercapai
                         </button>
-                      ) : null}
-                    </div>
-                  ) : null}
+                        {item.status !== "IN_PROGRESS" ? (
+                          <button
+                            type="button"
+                            className="roadmap-action secondary"
+                            onClick={() => bumpToInProgress(item)}
+                            disabled={busy}
+                          >
+                            <Circle size={14} /> Jadikan fokus
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          {roadmap.filter((item) => item.status === "ACHIEVED").length > 0 && (
+            <div className="roadmap-section-label achieved">
+              Tercapai ({roadmap.filter((item) => item.status === "ACHIEVED").length})
+            </div>
+          )}
+          {roadmap
+            .filter((item) => item.status === "ACHIEVED")
+            .map((item, index, arr) => {
+              const busy = pendingId === item.id;
+              return (
+                <div
+                  className={cx("timeline-item", "is-achieved")}
+                  key={item.id}
+                >
+                  <span className={cx("timeline-dot", item.tone)} />
+                  {index < arr.length - 1 && <span className="timeline-line" />}
+                  <div>
+                    <small>{item.statusLabel}</small>
+                    <h3>{item.title}</h3>
+                    <p>{item.detail}</p>
+                    {isAuthenticated ? (
+                      <div className="roadmap-item-actions">
+                        <button
+                          type="button"
+                          className={cx("roadmap-action", "is-achieved")}
+                          onClick={() => toggleStatus(item)}
+                          disabled={busy}
+                        >
+                          <RotateCcw size={14} /> Buka lagi
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
         </Panel>
         <Panel className="decision-panel">
           <h2>Kenapa target berubah?</h2>
