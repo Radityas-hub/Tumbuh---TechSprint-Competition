@@ -625,17 +625,81 @@ input, select, textarea { font-size: 16px; }
 
 ---
 
-### 🔵 Sprint 3 — Polish + PWA (opsional)
+### 🔵 Sprint 3 — Polish + PWA ✅ SELESAI 10 Mei 2026
 
-**Goal:** nice-to-have untuk production mobile.
+**Status:** Merged ke main `c36695c` lewat branch `feat/mobile-first-phase-3` (commit `86a45a3`). User acc via test manual.
 
-- [ ] FAB "Catat hari ini" — muncul di dashboard mobile only (lihat research doc § 3.5)
-- [ ] Swipe-to-close drawer (native gesture)
-- [ ] PWA manifest (`public/manifest.webmanifest`)
-- [ ] Apple touch icon, splash screens
-- [ ] `display: standalone`, theme color match `--teal-dark`
-- [ ] Service worker basic (offline shell — optional)
-- [ ] Test install PWA di iOS Safari → home screen → standalone launch OK
+**Goal:** Tingkatkan mobile dashboard ke level production-quality dengan 3 item high-impact: FAB thumb-zone, focus trap a11y, dan PWA manifest installable.
+
+**Scope final (scoped down dari proposal awal):**
+- FAB "Catat hari ini" — ✅
+- Focus trap drawer + sheet — ✅
+- PWA manifest basic — ✅
+- Swipe-to-close drawer — ❌ ditolak untuk hindari over-engineer MVP (backdrop tap + ESC cukup)
+- Auto-hide top bar on scroll — ❌ ditolak (nice-to-have only)
+- Dedicated 192/512 PWA icons — ⏳ masuk backlog (sementara pakai `/images/dashboard.png`)
+
+**Implementation checklist:**
+
+**P1 — FAB**
+- [x] `app/tumbuh/MobileFab.tsx` komponen baru
+- [x] Bulat 56 px, teal-dark, ikon Plus 22 px, bottom-right sticky
+- [x] Default `display: none`; `@media (max-width: 640px)` enable
+- [x] Position: `right: max(var(--space-4), env(safe-area-inset-right))`, `bottom: calc(64px + var(--space-4) + env(safe-area-inset-bottom))` (di atas tab bar)
+- [x] Z-index 25 (di bawah drawer 40 & sheet 50, di atas content)
+- [x] Hover/focus `transform: translateY(-2px); background: var(--teal)` dengan reduced-motion guard
+- [x] `aria-label="Catat hari ini"`
+- [x] Render di `Dashboard.tsx` cuma di state `hasDashboardData` (bukan empty state — udah ada CTA besar di sana)
+
+**P2 — Focus trap**
+- [x] `useRef<HTMLElement | null>` untuk sidebar + sheet + lastFocused
+- [x] `useEffect` expanded dari Sprint 2:
+  - [x] Cache `document.activeElement` sebagai lastFocusedRef saat open
+  - [x] Query semua focusable dalam container (button, href, input, select, textarea, tabindex ≥ 0)
+  - [x] Auto-focus pertama dengan `setTimeout(40)` supaya transition start dulu
+  - [x] Tab/Shift+Tab trap loop di dalam container (preventDefault saat hit edges)
+  - [x] Restore focus ke lastFocused saat close (`returnTo.focus()`)
+- [x] Remove `aria-hidden={!navOpen}` dari sidebar (salah di desktop yang selalu visible)
+- [x] ESC + body scroll lock tetap aktif dari Sprint 2
+
+**P3 — PWA manifest**
+- [x] `app/manifest.ts` pakai Next.js `MetadataRoute.Manifest` pattern (bukan static JSON)
+- [x] Field lengkap:
+  - [x] `name: "Tumbuh - Pendamping Digital ABK"`, `short_name: "Tumbuh"`, `lang: "id"`
+  - [x] `start_url: "/"`, `display: "standalone"`, `orientation: "portrait"`
+  - [x] `background_color: "#f5f8f6"` (var --bg), `theme_color: "#06443e"` (var --teal-dark, match viewport theme)
+  - [x] Icons 192 × 192 + 512 × 512 pakai `/images/dashboard.png` sementara (bagian backlog: icon dedicated PWA)
+
+**QA Sprint 3**
+- [x] TSC clean, diagnostics clean (preexisting line-clamp warning unrelated)
+- [x] FAB muncul di 640 px, hidden di desktop
+- [x] FAB tap buka QuickNote (sama seperti button di hero)
+- [x] FAB hidden di empty state dashboard
+- [x] Drawer open → fokus auto ke X button (first focusable)
+- [x] Tab key trap loop di drawer; Shift+Tab reverse
+- [x] Drawer close → fokus balik ke hamburger trigger
+- [x] Sheet open/close → fokus flow sama
+- [x] User acc: **10 Mei 2026**
+
+**Commit & push**
+- [x] Commit: `feat(mobile): sprint 3 — FAB, focus trap, PWA manifest` (`86a45a3`)
+- [x] Push ke `origin/feat/mobile-first-phase-3`
+- [x] Merge `--no-ff` ke main (`c36695c`)
+- [x] Push `origin/main`
+
+**Diff summary:**
+- `app/manifest.ts` +30 (new)
+- `app/tumbuh/MobileFab.tsx` +26 (new)
+- `app/tumbuh/AppShell.tsx` +48/−2 (focus trap expansion)
+- `app/tumbuh/Dashboard.tsx` +4 (FAB import + render)
+- `app/globals.css` +49 (FAB block)
+
+**Backlog item setelah Sprint 3:**
+- Icon PWA dedicated (maskable 192 + 512, SVG source)
+- Apple touch icons + splash screens
+- Screenshot manifest untuk install prompt iOS/Android richness
+- Lighthouse PWA audit (target 100)
+- Service worker offline shell (kalau backend-less dashboard dianggap worth effort)
 
 ---
 
