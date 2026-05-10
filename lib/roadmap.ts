@@ -364,6 +364,88 @@ export function buildRoadmapMeta(
   };
 }
 
+async function seedNextTargetsIfAllAchieved(childId: string) {
+  const nonAchievedCount = await prisma.roadmapItem.count({
+    where: {
+      childId,
+      status: { not: RoadmapStatus.ACHIEVED },
+    },
+  });
+
+  if (nonAchievedCount > 0) {
+    return;
+  }
+
+  const child = await prisma.child.findUniqueOrThrow({
+    where: { id: childId },
+    select: {
+      focusAreas: true,
+      condition: true,
+      birthDate: true,
+      routine: true,
+      supportNeed: true,
+    },
+  });
+
+  const existingTitles = await prisma.roadmapItem.findMany({
+    where: { childId },
+    select: { title: true },
+  });
+
+  const existingTitleSet = new Set(existingTitles.map((item) => item.title.toLowerCase()));
+  const focusAreas = child.focusAreas.map((area) => {
+    const map: Record<string, FocusAreaLabel> = {
+      COMMUNICATION: "Komunikasi",
+      MOTORIC: "Motorik",
+      BEHAVIOR: "Perilaku",
+      ACADEMIC: "Akademik",
+    };
+    return map[area] ?? "Komunikasi";
+  });
+
+  const candidates = selectCurriculumForChild({
+    focusAreas,
+    condition: child.condition,
+    birthDate: child.birthDate,
+    routine: child.routine,
+    supportNeed: child.supportNeed,
+  }).filter((item) => !existingTitleSet.has(item.title.toLowerCase()));
+
+  const nextItems = candidates.slice(0, 2);
+  if (nextItems.length === 0) {
+    return;
+  }
+
+  const currentMaxOrder = await prisma.roadmapItem.aggregate({
+    where: { childId },
+    _max: { sortOrder: true },
+  });
+
+  let sortOrder = (currentMaxOrder._max.sortOrder ?? 0) + 1;
+
+  const focusAreaToEnumMap: Record<FocusAreaLabel, string> = {
+    Komunikasi: FocusArea.COMMUNICATION,
+    Motorik: FocusArea.MOTORIC,
+    Perilaku: FocusArea.BEHAVIOR,
+    Akademik: FocusArea.ACADEMIC,
+  };
+
+  await prisma.roadmapItem.createMany({
+    data: nextItems.map((item, index) => ({
+      childId,
+      area: focusAreaToEnumMap[item.area] as typeof FocusArea[keyof typeof FocusArea],
+      title: item.title,
+      detail: item.detail,
+      status: index === 0 ? RoadmapStatus.IN_PROGRESS : RoadmapStatus.NEXT_TARGET,
+      evidence: item.evidence,
+      confidenceScore: 0.58,
+      sortOrder: sortOrder++,
+      personalizationSource: "curriculum_v1",
+      personalizationReason: "Target baru setelah semua target sebelumnya tercapai.",
+    })),
+  });
+}
+
 export async function getOwnedRoadmapItemForGuardian(guardianId: string, itemId: string) {
   const item = await prisma.roadmapItem.findFirst({
     where: {
@@ -412,6 +494,11 @@ export async function updateOwnedRoadmapItemForGuardian(
 
   await markInsightsStaleForChild(childId);
   await scheduleInsightRefreshForChild(childId);
+
+  // If all items are now ACHIEVED, seed next targets from curriculum
+  if (input.status === RoadmapStatus.ACHIEVED) {
+    await seedNextTargetsIfAllAchieved(childId);
+  }
 
   return serializeRoadmapItem(item);
 }
