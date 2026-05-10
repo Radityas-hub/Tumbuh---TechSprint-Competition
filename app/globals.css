@@ -2128,10 +2128,10 @@ a {
   grid-template-columns: minmax(0, 160px) minmax(260px, 520px);
   justify-content: center;
   gap: var(--space-3);
-  padding: var(--space-4) var(--space-6);
-  background: rgba(255, 255, 255, 0.92);
+  padding: var(--space-4) var(--space-6)
+    max(var(--space-4), env(safe-area-inset-bottom));
+  background: var(--surface-solid);
   border-top: 1px solid var(--line);
-  backdrop-filter: blur(8px);
 }
 
 .onboarding-next {
@@ -4809,3 +4809,151 @@ textarea:focus {
     width: auto;
   }
 }
+
+
+/* =========================================================
+   MOBILE-FIRST SPRINT 1 — progressive enhancement block
+   Only matches mobile viewports. Desktop (>900px) untouched.
+   See docs/mobile-first-audit-and-sprint.md for rationale.
+   ========================================================= */
+
+/* P1 — iOS standalone safe area: fill home-indicator background */
+.onboarding-mode {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* P2 — Prevent iOS auto-zoom when focusing inputs (<16px trigger) */
+@media (max-width: 900px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .onboarding-fields label {
+    font-size: 13px;
+  }
+}
+
+/* P3 — Shell + workspace edge handling in mobile */
+@media (max-width: 900px) {
+  .workspace {
+    border-radius: 0;
+  }
+
+  .onboarding-topbar {
+    padding: 0 16px;
+  }
+
+  .onboarding-topbar button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 8px;
+    margin-left: -8px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+/* P4 — Dashboard mobile refinement @ 640px */
+@media (max-width: 640px) {
+  .workspace {
+    padding-left: max(var(--space-4), env(safe-area-inset-left));
+    padding-right: max(var(--space-4), env(safe-area-inset-right));
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .workspace-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .dash-hero-img {
+    display: none;
+  }
+
+  .dash-hero {
+    padding: var(--space-5);
+  }
+
+  .dash-hero h1 {
+    font-size: 22px;
+    line-height: 1.2;
+  }
+
+  .dash-hero .primary-button {
+    align-self: stretch;
+    width: 100%;
+    justify-self: stretch;
+    justify-content: center;
+  }
+
+  .chart-modern {
+    height: 180px;
+  }
+
+  .dash-auth-reminder {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dash-auth-reminder .secondary-button {
+    width: 100%;
+  }
+
+  .dash-action-item .ghost-button {
+    min-height: 44px;
+  }
+
+  .dash-spotlight-links {
+    flex-wrap: wrap;
+  }
+
+  .qn-sheet {
+    padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
+  }
+}
+
+/* P5 — Onboarding extra-small polish */
+@media (max-width: 420px) {
+  .onboarding-screen {
+    padding: 0 12px 128px;
+  }
+
+  .onboarding-topbar {
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .focus-option-card {
+    min-height: 160px;
+  }
+
+  .review-card div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 6px 0;
+  }
+}
+
+/* P6 — Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .diagnosis-option,
+  .focus-option-card,
+  .other-condition,
+  .sidebar-link,
+  .nav-link,
+  .primary-button,
+  .secondary-button,
+  .ghost-button {
+    transition: none;
+  }
+}
+
+/* End of Mobile-First Sprint 1 block */
