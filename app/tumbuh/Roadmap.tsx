@@ -57,10 +57,10 @@ export function Roadmap({
     roadmapMeta?.shouldUsePlaceholder ?? items.length === 0;
   const roadmap = shouldUsePlaceholder ? [] : items;
   const evidenceLines = roadmap.length
-    ? [
+    ? Array.from(new Set([
         ...roadmap.flatMap((item) => item.evidence),
         ...(latestInsight?.alerts ?? []),
-      ].slice(0, 3)
+      ])).slice(0, 3)
     : [];
 
   const cond = conditionPhrase(ctx);
