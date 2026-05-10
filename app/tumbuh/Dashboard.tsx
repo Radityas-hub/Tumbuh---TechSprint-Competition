@@ -21,6 +21,7 @@ import {
 } from "./personalize";
 import { QuickNote } from "./QuickNote";
 import { ProductTour } from "./ProductTour";
+import { MobileFab } from "./MobileFab";
 import { DashboardSkeleton } from "./skeletons";
 import type {
   ChildApiModel,
@@ -294,6 +295,9 @@ export function Dashboard({
           childName={childName}
         />
       )}
+
+      {/* Mobile-only FAB — thumb zone primary action */}
+      <MobileFab onClick={openQuickNote} />
 
       {/* Product tour — shows once on first visit with data */}
       <ProductTour variant="full" />

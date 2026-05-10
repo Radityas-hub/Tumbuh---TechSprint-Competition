@@ -5260,3 +5260,52 @@ textarea:focus {
 }
 
 /* End of Mobile-First Sprint 2 block */
+
+
+/* =========================================================
+   MOBILE-FIRST SPRINT 3 — thumb-zone FAB
+   Dashboard primary action sticky di green zone mobile only.
+   ========================================================= */
+
+.mobile-fab {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .mobile-fab {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    right: max(var(--space-4), env(safe-area-inset-right));
+    bottom: calc(
+      64px + var(--space-4) + env(safe-area-inset-bottom)
+    );
+    width: 56px;
+    height: 56px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--teal-dark);
+    color: #ffffff;
+    z-index: 25;
+    transition: transform 180ms ease, background 180ms ease;
+  }
+
+  .mobile-fab:hover,
+  .mobile-fab:focus-visible {
+    transform: translateY(-2px);
+    background: var(--teal);
+  }
+
+  .mobile-fab:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-fab {
+      transition: none;
+    }
+  }
+}
+
+/* End of Mobile-First Sprint 3 block */
