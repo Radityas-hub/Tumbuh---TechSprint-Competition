@@ -209,14 +209,31 @@ export async function buildDashboardForChild(childId: string): Promise<Dashboard
   const activeRoadmapCount = roadmapItems.filter(
     (item) => item.status === RoadmapStatus.IN_PROGRESS || item.status === RoadmapStatus.ACHIEVED,
   ).length;
-  const alertCount = hasMeaningfulProgress ? latestInsight?.alerts.length ?? 0 : 0;
   const delta = notesThisWeek - previousWeekCount;
 
-  // Build spotlight from the most important alert
+  // Filter out non-actionable alerts (data limitation messages)
+  const dataLimitationPhrases = [
+    "belum ada alert",
+    "belum banyak catatan",
+    "catatan mingguan masih terbatas",
+    "tidak tersedianya catatan",
+    "data masih terbatas",
+    "belum cukup",
+    "rentang sebelumnya",
+    "pola belum terlihat",
+  ];
+
+  const actionableAlerts = (latestInsight?.alerts ?? []).filter((alert) => {
+    const lower = alert.toLowerCase();
+    return !dataLimitationPhrases.some((phrase) => lower.includes(phrase));
+  });
+
+  const alertCount = hasMeaningfulProgress ? actionableAlerts.length : 0;
+
   let spotlight: DashboardSpotlight | null = null;
-  if (hasMeaningfulProgress && latestInsight && latestInsight.alerts.length > 0) {
+  if (hasMeaningfulProgress && actionableAlerts.length > 0) {
     spotlight = {
-      message: latestInsight.alerts[0],
+      message: actionableAlerts[0],
       area: roadmapItems.find((item) => item.status === RoadmapStatus.NEEDS_ATTENTION)?.area ?? null,
       suggestedAction: "insight",
     };
