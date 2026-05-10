@@ -2601,7 +2601,9 @@ textarea:focus {
   flex: 1;
   flex-direction: column;
   gap: 12px;
-  justify-content: center;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: var(--space-2) 0;
 }
 
 .chat {
@@ -2635,6 +2637,118 @@ textarea:focus {
   border-radius: 16px;
   background: var(--teal-dark);
   color: white;
+}
+
+.chat.ai.typing {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.article-detail {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.article-back {
+  gap: 8px;
+}
+
+.article-detail-content {
+  display: grid;
+  gap: var(--space-6);
+  padding: var(--space-8);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-solid);
+}
+
+.article-detail-header {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 680px;
+}
+
+.article-detail-meta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.article-detail-header h1 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.article-detail-summary {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.article-detail-info {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding-top: var(--space-2);
+}
+
+.article-detail-info span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.article-detail-body {
+  max-width: 680px;
+  display: grid;
+  gap: var(--space-4);
+}
+
+.article-detail-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.article-detail-footer {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+}
+
+.article-detail-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--mint);
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.article-loading {
+  padding: var(--space-4);
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
 }
 
 .insight-callout {

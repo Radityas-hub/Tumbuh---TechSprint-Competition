@@ -1,11 +1,13 @@
 import {
+  ArrowLeft,
   ArrowRight,
   BookOpen,
   BrainCircuit,
   ChevronRight,
+  Clock,
   Search,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { apiRequest } from "./api";
 import { Panel, WorkspaceHeader } from "./components";
@@ -16,6 +18,7 @@ import {
   toChildContext,
 } from "./personalize";
 import type {
+  ArticleApiModel,
   ArticlesResponse,
   AssistantChatResponse,
   ChildApiModel,
@@ -70,6 +73,32 @@ export function Education({
   const [assistantConversationId, setAssistantConversationId] = useState<
     string | null
   >(null);
+  const [detailArticle, setDetailArticle] = useState<ArticleApiModel | null>(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages, isAsking]);
+
+  function openArticleDetail(article: UiArticleSummary) {
+    if (!article.slug) {
+      setActiveArticle(article);
+      return;
+    }
+    setIsLoadingDetail(true);
+    void apiRequest<{ article: ArticleApiModel }>(`/api/articles/${article.slug}`)
+      .then((data) => {
+        setDetailArticle(data.article);
+      })
+      .catch((error) => {
+        console.error("Failed to load article detail", error);
+        setActiveArticle(article);
+      })
+      .finally(() => {
+        setIsLoadingDetail(false);
+      });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -160,6 +189,13 @@ export function Education({
         title="Edukasi dan AI assistant"
         body={educationHeaderBody(ctx)}
       />
+
+      {detailArticle ? (
+        <ArticleDetail
+          article={detailArticle}
+          onBack={() => setDetailArticle(null)}
+        />
+      ) : (
       <div className="education-layout">
         <Panel className="article-panel">
           <div className="search-box">
@@ -171,6 +207,9 @@ export function Education({
               onChange={(event) => setSearchQuery(event.target.value)}
             />
           </div>
+          {isLoadingDetail && (
+            <div className="article-loading">Memuat artikel...</div>
+          )}
           <div className="article-grid">
             {articleItems.length === 0 && (
               <article className="article-card">
@@ -191,7 +230,7 @@ export function Education({
                 <p>{article.body}</p>
                 <button
                   className="text-button article-action"
-                  onClick={() => setActiveArticle(article)}
+                  onClick={() => openArticleDetail(article)}
                 >
                   Baca ringkasan <ChevronRight size={18} />
                 </button>
@@ -228,6 +267,7 @@ export function Education({
             {isAsking && (
               <p className="chat ai typing">Sedang menyusun jawaban...</p>
             )}
+            <div ref={chatEndRef} />
           </div>
           <div className="assistant-input">
             <input
@@ -246,6 +286,60 @@ export function Education({
           </div>
         </Panel>
       </div>
+      )}
     </>
+  );
+}
+
+function ArticleDetail({
+  article,
+  onBack,
+}: {
+  article: ArticleApiModel;
+  onBack: () => void;
+}) {
+  return (
+    <div className="article-detail">
+      <button className="text-button article-back" onClick={onBack}>
+        <ArrowLeft size={16} /> Kembali ke artikel
+      </button>
+
+      <article className="article-detail-content">
+        <header className="article-detail-header">
+          <span className="article-detail-meta">
+            {article.category}
+          </span>
+          <h1>{article.title}</h1>
+          <p className="article-detail-summary">{article.summary}</p>
+          <div className="article-detail-info">
+            <span><Clock size={14} /> {article.readTime} menit baca</span>
+            {article.publishedAt && (
+              <span>
+                {new Date(article.publishedAt).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            )}
+          </div>
+        </header>
+
+        <div className="article-detail-body">
+          {article.content.split("\n").filter(Boolean).map((paragraph, index) => (
+            <p key={index}>{paragraph}</p>
+          ))}
+        </div>
+
+        <footer className="article-detail-footer">
+          <div className="article-detail-disclaimer">
+            <BookOpen size={16} />
+            <span>
+              Artikel ini bersifat panduan observasi dan bukan pengganti konsultasi profesional.
+            </span>
+          </div>
+        </footer>
+      </article>
+    </div>
   );
 }
