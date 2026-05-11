@@ -5568,3 +5568,54 @@ textarea:focus {
 }
 
 /* End of Mobile-First Hotfix Education */
+
+
+/* =========================================================
+   MOBILE-FIRST HOTFIX v2 — Education page
+   Chat AI dominant + Article jadi horizontal slider swipe.
+   CSS-only mobile (<=640px). Desktop tidak berubah.
+   ========================================================= */
+
+@media (max-width: 640px) {
+  /* Chat thread tinggian — chat jadi fokus utama di mobile */
+  .chat-thread {
+    max-height: 560px;
+    min-height: 320px;
+  }
+
+  /* Article grid: dari vertical grid jadi horizontal slider */
+  .article-grid {
+    display: flex;
+    grid-template-columns: none;
+    gap: var(--space-3);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: var(--space-4);
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-inline: var(--space-4);
+    margin-inline: calc(var(--space-4) * -1);
+    padding-bottom: var(--space-2);
+  }
+
+  .article-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .article-card {
+    flex: 0 0 78vw;
+    min-width: 240px;
+    max-width: 300px;
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) {
+  .article-grid {
+    scroll-behavior: auto;
+  }
+}
+
+/* End of Education mobile hotfix v2 */
