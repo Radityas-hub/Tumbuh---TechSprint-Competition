@@ -5504,3 +5504,67 @@ textarea:focus {
 }
 
 /* End of Mobile-First Hotfix Progress */
+
+
+/* =========================================================
+   MOBILE-FIRST HOTFIX — Education page layout
+   Swap order: Chat AI dulu (compact, high-engagement),
+   Articles belakangan (browse-oriented, boleh panjang).
+   CSS-only. Desktop (>640px) tidak terpengaruh.
+   ========================================================= */
+
+@media (max-width: 640px) {
+  /* Education layout: jadikan flex column supaya bisa reorder */
+  .education-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* Assistant (Tanya AI) di atas, article panel di bawah */
+  .education-layout .assistant-panel {
+    order: 0;
+  }
+
+  .education-layout .article-panel {
+    order: 1;
+  }
+
+  /* Assistant panel: hilangkan min-height, compact thread height */
+  .assistant-panel {
+    min-height: auto;
+    gap: var(--space-3);
+  }
+
+  .assistant-head h2 {
+    font-size: 18px;
+  }
+
+  .chat-thread {
+    max-height: 280px;
+    min-height: 120px;
+  }
+
+  .chat {
+    font-size: 13px;
+    padding: 12px 14px;
+  }
+
+  /* Article panel: padding lebih tight */
+  .article-panel {
+    padding: var(--space-4);
+  }
+
+  /* Article summary card: lebih kompak */
+  .article-summary {
+    padding: var(--space-3);
+  }
+
+  /* Assistant input: keep full-width, tombol 48 px square */
+  .assistant-input button {
+    flex: 0 0 48px;
+    height: 48px;
+  }
+}
+
+/* End of Mobile-First Hotfix Education */
