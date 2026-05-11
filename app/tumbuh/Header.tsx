@@ -31,6 +31,9 @@ export function Header({
           </Link>
         ))}
       </nav>
+      <Link className="nav-link desktop-only" href="/login">
+        Masuk
+      </Link>
       <Link className="ghost-button desktop-only" href={startHref}>
         Get Started
       </Link>
@@ -48,6 +51,9 @@ export function Header({
               {item.label}
             </Link>
           ))}
+          <Link href="/login" onClick={closeMenu}>
+            Masuk
+          </Link>
           <Link
             className="mobile-start-link"
             href={startHref}
