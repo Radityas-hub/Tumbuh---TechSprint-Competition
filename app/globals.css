@@ -5419,3 +5419,88 @@ textarea:focus {
 }
 
 /* End of Mobile-First Sprint 4 CSS-only block */
+
+
+/* =========================================================
+   MOBILE-FIRST HOTFIX — Progress (Catatan) page layout
+   CSS-only. Desktop (>640px) tidak terpengaruh.
+   ========================================================= */
+
+@media (max-width: 640px) {
+  /* Panel-head: title di atas, filter chips horizontal-scroll di bawah */
+  .history-panel .panel-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .history-panel .panel-head h2 {
+    margin: 0;
+  }
+
+  .history-panel .filter-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 4px;
+    margin-inline: calc(var(--space-5) * -1);
+    padding-inline: var(--space-5);
+    scroll-snap-type: x proximity;
+  }
+
+  .history-panel .filter-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .history-panel .filter-row .filter-chip {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+
+  /* Panel min-height terlalu besar di mobile — biarkan konten yang menentukan */
+  .history-panel {
+    min-height: auto;
+  }
+
+  /* Entry card: padding lebih kompak */
+  .entry-card {
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .entry-card h3 {
+    margin-top: 10px;
+    font-size: 18px;
+    line-height: 1.3;
+  }
+
+  .entry-card p {
+    margin: 6px 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Edit / Hapus buttons: naikkan ke 44 px untuk WCAG AAA tap target */
+  .entry-actions .text-button,
+  .entry-actions .secondary-button {
+    min-height: 44px;
+    padding: 0 16px;
+  }
+
+  /* Entry insight: lebih tight di mobile */
+  .entry-insight {
+    padding: var(--space-3);
+    font-size: 13px;
+  }
+
+  /* Entry panel (form baru) + history panel: padding kompak */
+  .entry-panel {
+    padding: var(--space-4);
+  }
+}
+
+/* End of Mobile-First Hotfix Progress */
