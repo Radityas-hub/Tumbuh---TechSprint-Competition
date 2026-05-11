@@ -703,6 +703,76 @@ input, select, textarea { font-size: 16px; }
 
 ---
 
+### 🟢 Sprint 4 — CSS-only mobile composition ✅ SELESAI 10 Mei 2026
+
+**Status:** Merged ke main `a2b02ff` lewat branch `feat/mobile-composition-css-only` (2 commits: `6cf507a` docs v2 + `99586f6` implementasi). User acc via test manual.
+
+**Goal:** Mengubah komposisi konten di mobile (≤ 640 px) via CSS-only — zero JSX change, zero komponen baru, zero JS baru. Addresses user feedback "lo cuma nurunin konten, gak ada properti buat konten baru di mobile".
+
+**Research reference:** `docs/mobile-composition-research.md` v2 (revisi dari v1 yang proposal 7 komponen React berat).
+
+**Aturan main Sprint 4:**
+1. ✅ Tidak menambah komponen React baru
+2. ✅ Tidak mengubah markup JSX yang sudah ada
+3. ✅ Tidak menambah JavaScript baru
+4. ✅ Semua perubahan dalam `@media` block → desktop 100% identik
+5. ✅ Trade-off disebut explicit di research doc
+
+**Pattern yang di-implementasi (6 pattern dalam 1 block CSS):**
+
+- [x] **P1 — Section reorder** via flex + `order`:
+  - `.dash { display: flex; flex-direction: column }` di mobile
+  - `.dash-spotlight { order: -1 }` — alert naik ke atas kalau render
+  - `.dash-hero { order: 0 }`, `.dash-bento { order: 1 }`, `.dash-auth-reminder { order: 2 }`
+  - A11y note: tab order tetap DOM order (per W3C spec) — aman karena spotlight conditional & urutan logis masih masuk akal
+- [x] **P2 — Stat carousel horizontal scroll-snap**:
+  - `.metric-grid` dari `grid 4-col` → `flex` scroll container
+  - `scroll-snap-type: x mandatory`, `scroll-snap-align: start` di tiap card
+  - Card `flex: 0 0 72vw; min-width: 220px; max-width: 260px` — preview affordance ~28% viewport
+  - Bleed ke edge viewport via `padding-inline: 16px + margin-inline: -16px`
+  - Scrollbar hidden via `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`
+- [x] **P3 — Hero compact**:
+  - h1 dari 22 px → 20 px
+  - `.dash-hero p` line-clamp 2 + overflow hidden
+  - Padding 16 px
+  - Include `line-clamp` standard property untuk compat
+- [x] **P4 — Focus target primary-only**:
+  - `.dash-focus-list > :nth-child(n+2) { display: none }`
+  - Hanya target #1 visible; tombol "Lihat semua target" existing tetap jadi escape hatch
+  - Trade-off: user mobile kehilangan preview target #2/#3 — sudah documented di research doc § 5
+- [x] **P5 — Insight teaser**:
+  - `.insight-text` line-clamp 3
+  - Existing expand button di InsightCard tetap berfungsi
+- [x] **P6 — Daily actions primary-only**:
+  - `.dash-actions > .dash-action-item + .dash-action-item { display: none }`
+  - Adjacent sibling selector skip `<h2>`, hide action ke-2
+- [x] **Reduced motion guard**: `.metric-grid { scroll-behavior: auto }` di prefers-reduced-motion
+
+**QA**
+- [x] TSC clean, diagnostics clean (only preexisting `line-clamp` warning unrelated di line 4290)
+- [x] Mobile 360-640 px: semua 6 pattern aktif
+- [x] Desktop 900-1920 px: byte-for-byte identik dengan pre-Sprint 4
+- [x] User acc: **10 Mei 2026**
+
+**Commit & push**
+- [x] Commit 1: `docs(mobile): revised mobile composition research for CSS-only approach` (`6cf507a`)
+- [x] Commit 2: `feat(mobile): sprint 4 CSS-only composition patterns` (`99586f6`)
+- [x] Push ke `origin/feat/mobile-composition-css-only`
+- [x] Merge `--no-ff` ke main (`a2b02ff`)
+- [x] Push `origin/main`
+
+**Diff summary:**
+- `app/globals.css` +110 (1 block `@media (max-width: 640px)` + reduced-motion guard)
+- `docs/mobile-composition-research.md` +437 (research v2 CSS-only)
+
+**Known follow-ups (opsional Sprint 5):**
+- Dot indicators untuk stat carousel (butuh IntersectionObserver atau `::scroll-marker` Chrome-only — skip untuk MVP)
+- Real progressive disclosure di focus list (butuh `<details>` atau state React) — upgrade kalau user feedback bilang miss target #2/#3
+- Roadmap / Education / Consultation mobile composition (kalau dashboard pattern valid, replikasi)
+- Inline compose chip (butuh JSX + event handler, tidak bisa CSS-only)
+
+---
+
 ## 5. Verification Matrix (setiap sprint selesai)
 
 | Viewport | Device hint | Checklist |
